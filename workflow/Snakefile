@@ -1,0 +1,27 @@
+include: "rules/commons/00_commons.smk"
+include: "rules/00_modules.smk"
+
+
+rule run_all:
+    input:
+        RUN_CONFIG_RELPATH,
+        MANIFEST_RELPATH,
+        # add output of final rule(s) here
+        # to trigger complete run
+        WORKFLOW_OUTPUT,
+
+
+onsuccess:
+    shell(f"rm -rf {DIR_CLUSTERLOG_OUT}")
+    shell(f"rm -rf {DIR_CLUSTERLOG_ERR}")
+    shell(f"rm -f {RUN_CONFIG_RELPATH.with_suffix('.bak.yaml')}")
+
+
+onerror:
+    try:
+        rsync_f2f(RUN_CONFIG_RELPATH, RUN_CONFIG_RELPATH.with_suffix(".bak.yaml"))
+    except FileNotFoundError:
+        # can happen when creation of a single file is requested
+        # during development
+        pass
+    shell(f"rm -f {RUN_CONFIG_RELPATH}")

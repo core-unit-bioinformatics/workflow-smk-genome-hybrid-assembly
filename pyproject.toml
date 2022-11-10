@@ -1,0 +1,33 @@
+[cubi.workflow]
+pid = "undefined"
+name = "genome-hybrid-assembly"
+version = "prototype"
+
+# the template code used for prototype
+# development includes workarounds/fixes
+# for template-snakemake issues 14-17
+[cubi.workflow.template]
+pid = "undefined"
+system = "smk"
+version = "1.0.0-dirty-fix"
+
+[tool.black]
+line-length = 88
+
+[tool.pylint.format]
+max-line-length = "88"
+
+[tool.pylint.messages_control]
+disable=[
+  "logging-fstring-interpolation",
+  "useless-return",
+  "missing-module-docstring"
+]
+
+[tool.isort]
+profile = "black"
+
+
+[cubi.metadata]
+pid = "undefined"
+version = "1.1.0"
