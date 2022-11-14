@@ -30,7 +30,7 @@ rule verkko_trio_samples:
         sample = CONSTRAINT_TRIO_SAMPLES
     params:
         dryrun = "--dry-run" if VERKKO_DRY_RUN else "",
-        check = "" if VERKKO_DRY_RUN else " && touch {output.done}",
+        check = lambda wildcards, output: "" if VERKKO_DRY_RUN else f" && touch {output.done}",
         acc_in=lambda wildcards, input: register_input(input.hifi, input.nano),
     shell:
         "/usr/bin/time -v "
@@ -76,7 +76,7 @@ rule verkko_unphased_samples:
         sample = CONSTRAINT_UNPHASED_SAMPLES
     params:
         dryrun = "--dry-run" if VERKKO_DRY_RUN else "",
-        check = "" if VERKKO_DRY_RUN else " && touch {output.done}",
+        check = lambda wildcards, output: "" if VERKKO_DRY_RUN else f" && touch {output.done}",
         acc_in=lambda wildcards, input: register_input(input.hifi, input.nano),
     shell:
         "/usr/bin/time -v "

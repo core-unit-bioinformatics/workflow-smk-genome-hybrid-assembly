@@ -137,7 +137,7 @@ rule run_verkko_test_local:
         time_hrs = lambda wildcards, attempt: attempt * attempt,
     params:
         dryrun = "--dry-run" if VERKKO_DRY_RUN else "",
-        check = "" if VERKKO_DRY_RUN else " && touch {output.done}"
+        check = lambda wildcards, output: "" if VERKKO_DRY_RUN else f" && touch {output.done}"
     shell:
         "/usr/bin/time -v "
         "verkko --local "
@@ -182,7 +182,7 @@ rule run_verkko_test_cluster:
         "../../envs/verkko.yaml"
     params:
         dryrun = "--dry-run" if VERKKO_DRY_RUN else "",
-        check = "" if VERKKO_DRY_RUN else " && touch {output.done}"
+        check = lambda wildcards, output: "" if VERKKO_DRY_RUN else f" && touch {output.done}"
     shell:
         "/usr/bin/time -v "
         "verkko --lsf "
