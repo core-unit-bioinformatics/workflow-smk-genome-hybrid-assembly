@@ -15,3 +15,13 @@ elif RUN_VERKKO_TEST_CLUSTER:
     )
 else:
     pass
+
+if RUN_VERKKO_TRIO_SAMPLES:
+    VERKKO_OUTPUT.extend(
+        rules.run_verkko_trio_samples.input.assemblies
+    )
+
+if RUN_VERKKO_UNPHASED_SAMPLES:
+    VERKKO_OUTPUT.extend(
+        rules.run_verkko_unphased_samples.input.assemblies
+    )

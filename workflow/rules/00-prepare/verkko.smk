@@ -115,43 +115,6 @@ rule adapt_verkko_launcher:
     # END OF RUN BLOCK
 
 
-# rule run_verkko_test_local:
-#     input:
-#         exe = rules.adapt_verkko_launcher.output.target,
-#         hifi = rules.copy_verkko_testdata.output.hifi,
-#         nano = rules.copy_verkko_testdata.output.nano,
-#     output:
-#         wd = directory(
-#             DIR_PROC.joinpath("testdata/verkko/local/assembly")
-#         )
-#     log:
-#         DIR_LOG.joinpath("testdata/verkko/local/assembly.log")
-#     benchmark:
-#         DIR_RSRC.joinpath("testdata/verkko/local/assembly.log")
-#     conda:
-#         "../../envs/verkko_env.yaml"
-#     threads: 4
-#     resources:
-#         mem_mb = lambda wildcards, attempt: 12288 * attempt,
-#         mem_gb = lambda wildcards, attempt: 12 * attempt,
-#         time_hrs = lambda wildcards, attempt: attempt * attempt,
-#     params:
-#         bin_folder = lambda wc, input: str(input.exe).strip("/verkko")
-#     shell:
-#         "export PATH=$PATH:$PWD/{params.bin_folder} ; "
-#         "/usr/bin/time -v "
-#         "verkko --local "
-#             "--local-memory {resources.mem_gb} "
-#             "--local-cpus {threads} "
-#             "--threads {threads} "
-#             "--python `which python` "
-#             "--mbg `which MBG` "
-#             "--graphaligner `which GraphAligner` "
-#             "--hifi {input.hifi} "
-#             "--nano {input.nano} "
-#             "-d {output.wd} &> {log}"
-
-
 rule run_verkko_test_local:
     input:
         hifi = rules.copy_verkko_testdata.output.hifi,
@@ -159,7 +122,8 @@ rule run_verkko_test_local:
     output:
         wd = directory(
             DIR_PROC.joinpath("testdata/verkko/local/assembly")
-        )
+        ),
+        done = DIR_PROC.joinpath("testdata/verkko/local/assembly.ok")
     log:
         DIR_LOG.joinpath("testdata/verkko/local/assembly.log")
     benchmark:
@@ -171,6 +135,9 @@ rule run_verkko_test_local:
         mem_mb = lambda wildcards, attempt: 12288 * attempt,
         mem_gb = lambda wildcards, attempt: 12 * attempt,
         time_hrs = lambda wildcards, attempt: attempt * attempt,
+    params:
+        dryrun = "--dry-run" if VERKKO_DRY_RUN else "",
+        check = "" if VERKKO_DRY_RUN else " && touch {output.done}"
     shell:
         "/usr/bin/time -v "
         "verkko --local "
@@ -183,8 +150,8 @@ rule run_verkko_test_local:
             "--hifi {input.hifi} "
             "--nano {input.nano} "
             "-d {output.wd} "
-            "--snakeopts \"--restart-times 1\" "
-            " &> {log}"
+            "--snakeopts \"--restart-times 1 {params.dryrun}\" "
+            " &> {log} {params.check}"
 
 
 localrules: run_verkko_test_cluster
@@ -201,17 +168,21 @@ rule run_verkko_test_cluster:
     input:
         hifi = rules.copy_verkko_testdata.output.hifi,
         nano = rules.copy_verkko_testdata.output.nano,
-        profile = config["verkko_smk_profile"],
+        profile = ancient(config["verkko_smk_profile"]),
     output:
         wd = directory(
             DIR_PROC.joinpath("testdata/verkko/cluster/assembly")
-        )
+        ),
+        done = DIR_PROC.joinpath("testdata/verkko/cluster/assembly.ok")
     log:
         DIR_LOG.joinpath("testdata/verkko/cluster/assembly.log")
     benchmark:
         DIR_RSRC.joinpath("testdata/verkko/cluster/assembly.log")
     conda:
         "../../envs/verkko.yaml"
+    params:
+        dryrun = "--dry-run" if VERKKO_DRY_RUN else "",
+        check = "" if VERKKO_DRY_RUN else " && touch {output.done}"
     shell:
         "/usr/bin/time -v "
         "verkko --lsf "
@@ -221,38 +192,8 @@ rule run_verkko_test_cluster:
             "--hifi {input.hifi} "
             "--nano {input.nano} "
             "-d {output.wd} "
-            "--snakeopts \"--profile $PWD/{input.profile}\" "
-            "&> {log}"
-
-
-# rule run_verkko_test_cluster:
-#     input:
-#         exe = rules.adapt_verkko_launcher.output.target,
-#         hifi = rules.copy_verkko_testdata.output.hifi,
-#         nano = rules.copy_verkko_testdata.output.nano,
-#         profile = config["verkko_smk_profile"],
-#     output:
-#         wd = directory(
-#             DIR_PROC.joinpath("testdata/verkko/cluster/assembly")
-#         )
-#     log:
-#         DIR_LOG.joinpath("testdata/verkko/cluster/assembly.log")
-#     benchmark:
-#         DIR_RSRC.joinpath("testdata/verkko/cluster/assembly.log")
-#     conda:
-#         "../../envs/verkko_env.yaml"
-#     params:
-#         bin_folder = lambda wc, input: str(input.exe).strip("/verkko")
-#     shell:
-#         "export PATH=$PATH:$PWD/{params.bin_folder} ; "
-#         "/usr/bin/time -v "
-#         "verkko --hpc --hpc-profile $PWD/{input.profile} "
-#             "--python `which python` "
-#             "--mbg `which MBG` "
-#             "--graphaligner `which GraphAligner` "
-#             "--hifi {input.hifi} "
-#             "--nano {input.nano} "
-#             "-d {output.wd} &> {log}"
+            "--snakeopts \"--profile $PWD/{input.profile} {params.dryrun}\" "
+            "&> {log} {params.check}"
 
 
 localrules: run_verkko_tests

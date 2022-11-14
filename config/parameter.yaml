@@ -3,3 +3,5 @@
 verkko_container: verkko_v1.2-release.sif
 verkko_smk_profile: prf_RFDGA_verkko_woBonus
 # prf_RFDGA_verkko_woBonus/
+
+verkko_dry_run: false
