@@ -54,15 +54,16 @@ def collect_input_files(sample_sheet):
     be sufficient to run the workflow
     in single-sample mode
     """
-    sample_input = collections.defaultdict(list)
+    sample_input = collections.defaultdict(dict)
     trio_samples = set()
     unphased_samples = set()
 
     for row in sample_sheet.itertuples():
+        sample = row.sample
         hifi_input, hifi_hashes = collect_sequence_input(row.hifi)
         ont_input, ont_hashes = collect_sequence_input(row.ont)
         if row.target == "trio":
-            trio_samples.add(row.sample)
+            trio_samples.add(sample)
             hap1_db = row.hap1
             assert hap1_db.endswith("meryl")
             assert pathlib.Path(hap1_db).resolve(strict=True).is_dir()
@@ -76,7 +77,7 @@ def collect_input_files(sample_sheet):
             assert sample_input[sample]["hap1"] != sample_input[sample]["hap2"]
 
         elif row.target == "unphased":
-            unphased_samples.add(row.sample)
+            unphased_samples.add(sample)
         else:
             raise ValueError(row.target)
         sample_input[sample]["hifi"] = hifi_input

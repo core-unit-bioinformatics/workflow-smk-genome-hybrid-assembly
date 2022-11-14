@@ -130,10 +130,10 @@ rule run_verkko_test_local:
         DIR_RSRC.joinpath("testdata/verkko/local/assembly.log")
     conda:
         "../../envs/verkko.yaml"
-    threads: 4
+    threads: 6
     resources:
-        mem_mb = lambda wildcards, attempt: 12288 * attempt,
-        mem_gb = lambda wildcards, attempt: 12 * attempt,
+        mem_mb = lambda wildcards, attempt: 16384 * attempt,
+        mem_gb = lambda wildcards, attempt: 16 * attempt,
         time_hrs = lambda wildcards, attempt: attempt * attempt,
     params:
         dryrun = "--dry-run" if VERKKO_DRY_RUN else "",

@@ -31,8 +31,7 @@ rule verkko_trio_samples:
     params:
         dryrun = "--dry-run" if VERKKO_DRY_RUN else "",
         check = "" if VERKKO_DRY_RUN else " && touch {output.done}",
-        acc_in=lambda wildcards, input: register_input(input.hifi),
-        acc_in=lambda wildcards, input: register_input(input.nano),
+        acc_in=lambda wildcards, input: register_input(input.hifi, input.nano),
     shell:
         "/usr/bin/time -v "
         "verkko --lsf "
@@ -78,8 +77,7 @@ rule verkko_unphased_samples:
     params:
         dryrun = "--dry-run" if VERKKO_DRY_RUN else "",
         check = "" if VERKKO_DRY_RUN else " && touch {output.done}",
-        acc_in=lambda wildcards, input: register_input(input.hifi),
-        acc_in=lambda wildcards, input: register_input(input.nano),
+        acc_in=lambda wildcards, input: register_input(input.hifi, input.nano),
     shell:
         "/usr/bin/time -v "
         "verkko --lsf "
