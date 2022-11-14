@@ -12,8 +12,8 @@ rule run_all:
 
 
 onsuccess:
-    shell(f"rm -rf {DIR_CLUSTERLOG_OUT}")
-    shell(f"rm -rf {DIR_CLUSTERLOG_ERR}")
+    shell(f"rm -rf {DIR_CLUSTERLOG_OUT} && mkdir -p {DIR_CLUSTERLOG_OUT}")
+    shell(f"rm -rf {DIR_CLUSTERLOG_ERR} && mkdir -p {DIR_CLUSTERLOG_ERR}")
     shell(f"rm -f {RUN_CONFIG_RELPATH.with_suffix('.bak.yaml')}")
 
 
