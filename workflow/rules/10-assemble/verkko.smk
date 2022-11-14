@@ -41,7 +41,7 @@ rule verkko_trio_samples:
             "--hifi {input.hifi} "
             "--nano {input.nano} "
             "-d {output.wd} "
-            "--hap-kmers {input.hap1} {input.hap2} trio "
+            "--hap-kmers {input.hap1_db} {input.hap2_db} trio "
             "--snakeopts \"--profile $PWD/{input.profile} {params.dryrun}\" "
             "&> {log} {params.check}"
 
