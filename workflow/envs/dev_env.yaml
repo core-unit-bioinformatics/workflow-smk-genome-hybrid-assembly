@@ -2,8 +2,8 @@ name: smk_dev_env
 dependencies:
   - Python=3.9.*
   - pip
-  - mamba=0.25.0
-  - snakemake=7.18.1
+  - mamba=1.1.0
+  - snakemake=7.19.1
   - portalocker=2.5.1
   - pandas=1.4.3
   - pytables=3.7.0
@@ -17,4 +17,4 @@ dependencies:
   - pylint=2.14.5
   - isort=5.10.1
   - black=22.6.0
-  - snakefmt=0.6.1
+  - snakefmt=0.8.0

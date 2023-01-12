@@ -1,12 +1,31 @@
 include: "rules/commons/00_commons.smk"
 include: "rules/00_modules.smk"
+include: "rules/99_aggregate.smk"
 
+# To avoid adding a trivial testing
+# module that extends the workflow
+# output list, the WORKFLOW_OUTPUT
+# for the snaketests is extended
+# here. DO NOT DO this for a
+# regular pipeline (use dedicated
+# sub-modules).
+WORKFLOW_OUTPUT.extend(
+    [DIR_RES.joinpath("testing", "all-ok.txt")]
+)
 
 rule run_tests:
     input:
         RUN_CONFIG_RELPATH,
+        COPY_SAMPLE_SHEET_RELPATH,
         MANIFEST_RELPATH,
-        DIR_RES.joinpath("testing", "all-ok.txt"),
+        WORKFLOW_OUTPUT
+
+
+rule run_tests_no_manifest:
+    input:
+        RUN_CONFIG_RELPATH,
+        COPY_SAMPLE_SHEET_RELPATH,
+        WORKFLOW_OUTPUT
 
 
 rule create_test_file:
@@ -63,6 +82,8 @@ rule test_find_script_success:
         script=find_script("test"),
         acc_out=lambda wildcards, output: register_result(output),
     run:
+        import pathlib  # workaround, see gh#20
+
         # the following should never raise,
         # i.e. script_find() would fail before
         _ = pathlib.Path(params.script).resolve(strict=True)
@@ -82,9 +103,9 @@ rule test_find_script_fail:
     run:
         try:
             script = find_script("non_existing")
-        # the previous line should not succeed,
-        # if we are here, we do not create the
-        # output file of the test, and thus fail
+            # the previous line should not succeed,
+            # if we are here, we do not create the
+            # output file of the test, and thus fail
         except ValueError:
             with open(output[0], "w") as testfile:
                 testfile.write("find_script fail test ok")
@@ -101,6 +122,8 @@ rule test_rsync_f2d:
     params:
         acc_out=lambda wildcards, output: register_result(output),
     run:
+        import pathlib  # workaround, see gh#20
+
         # first check that nobody changed the filename
         input_name = pathlib.Path(input[0]).name
         output_name = pathlib.Path(output[0]).name

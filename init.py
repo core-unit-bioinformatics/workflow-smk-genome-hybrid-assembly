@@ -9,7 +9,18 @@ import subprocess as sp
 import sys
 
 
-def create_execution_environment(repo_folder, project_folder, dev_only):
+# parent of the script's parent is one level above
+# the repository location
+DEFAULT_ROOT = pl.Path(__file__).resolve().parent.parent
+
+DEFAULT_CONST_MODULE = pl.Path(__file__).parent
+DEFAULT_CONST_MODULE = DEFAULT_CONST_MODULE.joinpath(
+    "workflow", "rules", "commons", "10_constants.smk"
+)
+DEFAULT_CONST_MODULE.resolve(strict=True)
+
+
+def create_execution_environment(repo_folder, project_folder, conda_env_name):
     """Create Conda environments if any Conda-like executable
     is found on $PATH
 
@@ -17,8 +28,7 @@ def create_execution_environment(repo_folder, project_folder, dev_only):
         repo_folder (pathlib.Path): This repository checkout location
         project_folder (pathlib.Path): Project folder, assumed to be
         one above the repo folder
-        dev_only (boolean): Only create Conda environment for
-        development purposes
+        conda_env_name: Name of Conda environment to create
 
     Raises:
         RuntimeError: In dev only mode, a Conda-like executable
@@ -47,47 +57,42 @@ def create_execution_environment(repo_folder, project_folder, dev_only):
         except sp.CalledProcessError as spe:
             logger.warning(f"Executable {executable} not available: {spe}")
     if use_executable is None:
-        logger.warning(
-            "No executable available to create execution (conda) environment"
+        logger.error(
+            "No executable available to create execution (conda) environment."
+            " If that is correct, please restart this script with the option"
+            " '--no-env' to skip this step."
         )
-        if dev_only:
-            raise RuntimeError("No Conda executable available, cannot create dev env")
-    else:
-        logger.debug(
-            f"Found Conda executable {use_executable} - creating environment..."
-        )
-        if dev_only:
-            logger.debug('Development mode set, select "dev_env.yaml" file.')
-            yaml_file = repo_folder / pl.Path("workflow", "envs", "dev_env.yaml")
-            yaml_file = yaml_file.resolve(strict=True)
-            env_prefix = repo_folder / pl.Path("dev_env")
-        else:
-            yaml_file = repo_folder / pl.Path("workflow", "envs", "exec_env.yaml")
-            yaml_file = yaml_file.resolve(strict=True)
-            env_prefix = project_folder / pl.Path("exec_env")
-        logger.info(
-            f"Creating Snakemake execution environment at location: {env_prefix}"
-        )
-        logger.debug("Setting up the execution environment may take a while...")
-        call_args = [
-            use_executable,
-            "env",
-            "create",
-            "--quiet",
-            "--force",
-            "-f",
-            str(yaml_file),
-            "-p",
-            str(env_prefix),
-        ]
-        try:
-            proc_out = sp.run(call_args, shell=False, capture_output=True, check=False)
-            proc_out.check_returncode()  # check after to get stdout/stderr
-        except sp.CalledProcessError as spe:
-            logger.error(f"Could not create Snakemake execution environment: {spe}")
-            logger.error(f"\n=== STDOUT ===\n{proc_out.stdout.decode('utf-8')}")
-            logger.error(f"\n=== STDERR ===\n{proc_out.stderr.decode('utf-8')}")
-            raise
+        raise RuntimeError("No Conda/Mamba executable in $PATH")
+    logger.debug(f"Found Conda executable {use_executable} - creating environment...")
+    # select Conda env yaml file for specified environment
+    std_path = repo_folder.joinpath("workflow", "envs", f"{conda_env_name}_env.yaml")
+    logger.debug(f"Searching for Conda env file at location: {std_path}")
+    yaml_file = std_path.resolve(strict=True)
+    env_prefix = yaml_file.stem
+    logger.debug(
+        f"Creating environment with prefix '{env_prefix}/' underneath path: {project_folder}"
+    )
+    env_path = project_folder.joinpath(env_prefix)
+    logger.debug("Setting up the Conda environment may take a while...")
+    call_args = [
+        use_executable,
+        "env",
+        "create",
+        "--quiet",
+        "--force",
+        "-f",
+        str(yaml_file),
+        "-p",
+        str(env_path),
+    ]
+    try:
+        proc_out = sp.run(call_args, shell=False, capture_output=True, check=False)
+        proc_out.check_returncode()  # check after to get stdout/stderr
+    except sp.CalledProcessError as spe:
+        logger.error(f"Could not create Snakemake execution environment: {spe}")
+        logger.error(f"\n=== STDOUT ===\n{proc_out.stdout.decode('utf-8')}")
+        logger.error(f"\n=== STDERR ===\n{proc_out.stderr.decode('utf-8')}")
+        raise
     return None
 
 
@@ -106,7 +111,7 @@ def setup_logging(project_dir, debug_mode, dev_only):
     """
 
     base_level = "DEBUG" if debug_mode else "WARNING"
-    log_file_location = project_dir / pl.Path("init.log")
+    log_file_location = project_dir.joinpath("init.log")
     if dev_only:
         log_file_location = os.devnull
 
@@ -129,11 +134,13 @@ def setup_logging(project_dir, debug_mode, dev_only):
         },
         "formatters": {
             "default": {
-                "format": "%(asctime)s : \
-                    %(levelname)s - \
-                    %(funcName)s - \
-                    ln:%(lineno)d >> \
-                    %(message)s",
+                "format": (
+                    "%(asctime)s : "
+                    "%(levelname)s | "
+                    "%(funcName)s | "
+                    "ln:%(lineno)d >> "
+                    "%(message)s"
+                ),
                 "datefmt": "%Y-%m-%d %H:%M:%S",
             },
         },
@@ -157,24 +164,66 @@ def parse_command_line():
         dest="debug",
     )
     parser.add_argument(
-        "--dev-only",
+        "--root-path",
+        "--root",
+        "-r",
+        type=lambda x: pl.Path(x).resolve(strict=False),
+        default=DEFAULT_ROOT,
+        dest="root_path",
+        help="Specify the top-level (root) path under which"
+        " the Conda environment and the working directory"
+        f" hierarchy shall be created. Default: {DEFAULT_ROOT}",
+    )
+    parser.add_argument(
+        "--constants",
+        "-c",
+        type=lambda x: pl.Path(x).resolve(strict=True),
+        default=DEFAULT_CONST_MODULE,
+        dest="constants",
+        help="Specify the path to the Snakemake 'constants' module"
+        " that contains the information which paths to create"
+        f" inside the working directory. Default: {DEFAULT_CONST_MODULE}",
+    )
+    parser.add_argument(
+        "--dev-no-wd",
+        "--no-wd",
         action="store_true",
         default=False,
-        help="Only create a Conda environment for development purposes \
-            (no working directory hierarchy).",
-        dest="dev_only",
+        help="Do not create the working directory hierarchy.",
+        dest="dev_no_wd",
     )
+    parser.add_argument(
+        "--dev-no-env",
+        "--no-env",
+        action="store_true",
+        default=False,
+        help="Do not create the Conda environment.",
+        dest="dev_no_env",
+    )
+    parser.add_argument(
+        "--conda-env",
+        "--env",
+        "-e",
+        type=str,
+        choices=["exec", "dev"],
+        default="exec",
+        dest="conda_env",
+        help="Specify the Conda environment to create: 'exec' [default] or 'dev'",
+    )
+
     args = parser.parse_args()
     return args
 
 
-def create_wd_folders(project_dir):
+def create_wd_folders(project_dir, std_paths):
     """Create folder hierarchy starting
     at Snakemake's future working directory
 
     Args:
         project_dir (pathlib.Path): Project folder,
         assumed to be one above repo location
+        std_paths (list of pathlib.Path): standard
+        paths to be created in the working directory
 
     Returns:
         None: placeholder
@@ -182,26 +231,77 @@ def create_wd_folders(project_dir):
 
     logger = logging.getLogger(__name__)
     logger.info("Creating Snakemake working directory structure")
-    wd_toplevel = project_dir / pl.Path("wd")
+    wd_toplevel = project_dir.joinpath("wd")
     wd_toplevel.mkdir(exist_ok=True, parents=True)
 
-    subfolders = [
-        ("proc",),
-        ("results",),
-        ("log",),
-        ("rsrc",),
-        ("log", "cluster_jobs", "err"),
-        ("log", "cluster_jobs", "out"),
-        ("global_ref",),
-        ("local_ref",),
-    ]
-
-    for sub in subfolders:
-        full_path = wd_toplevel / pl.Path(*sub)
+    for sub_path in std_paths:
+        full_path = wd_toplevel.joinpath(sub_path)
         logger.info(f"Creating path {full_path}")
         full_path.mkdir(exist_ok=True, parents=True)
 
     return None
+
+
+def _extract_directory_paths(module_path):
+    """
+    Args:
+        module_path (pathlib.Path): Path to Snakemake constants module
+    """
+    # import needed for eval() of Paths
+    import pathlib
+
+    logger = logging.getLogger(__name__)
+
+    paths = dict()
+    ignore = None
+    extracting = False
+    logger.debug("Evaluating content of constants module")
+    with open(module_path, "r") as module:
+        for line in module:
+            if line.strip().startswith("#"):
+                continue
+            elif not line.strip() and extracting:
+                # reached end of class definition
+                break
+            elif line.strip().startswith("class ConstDirectories:"):
+                extracting = True
+                continue
+            elif line.strip().startswith("_no_init"):
+                ignore = eval(line.strip().split("=")[-1])
+            elif extracting:
+                path_name = line.strip().split(":")[0].strip()
+                path = eval(line.strip().split("=")[-1])
+                paths[path_name] = path
+            else:
+                pass
+
+    logger.debug(
+        f"Extracted a total of {len(paths)} paths, {len(ignore)}"
+        " of which to be ignored"
+    )
+    assert ignore is not None
+    return paths, ignore
+
+
+def load_constant_paths(module_path):
+    """Load all default paths from the
+    (default) constants module. The module
+    is considered the single source of truth
+    on standard paths required inside
+    the working directory.
+
+    Args:
+        module_path (pathlib.Path): Path to Snakemake commons constants module
+    """
+    logger = logging.getLogger(__name__)
+    logger.debug(f"Loading constants from module {module_path}")
+    paths, ignore = _extract_directory_paths(module_path)
+    paths_to_create = []
+    for path_name, path in paths.items():
+        if path_name not in ignore:
+            paths_to_create.append(path)
+    logger.debug(f"{len(paths_to_create)} remaining paths after filtering")
+    return paths_to_create
 
 
 def main():
@@ -211,16 +311,23 @@ def main():
         integer: explicit 0 on success
     """
     args = parse_command_line()
-    repo_location = pl.Path(__file__).resolve(strict=True).parent
-    project_dir = repo_location.parent
-    log_file_location = setup_logging(project_dir, args.debug, args.dev_only)
+    dev_mode = args.conda_env == "dev"
+    args.root_path.mkdir(parents=True, exist_ok=True)
+    log_file_location = setup_logging(args.root_path, args.debug, dev_mode)
     logger = logging.getLogger(__name__)
+    repo_location = pl.Path(__file__).parent
     logger.info(f"Repository location: {repo_location}")
-    logger.info(f"Project directory: {project_dir}")
+    logger.info(f"Project directory: {args.root_path}")
     logger.info(f"Log file location: {log_file_location}")
-    create_execution_environment(repo_location, project_dir, args.dev_only)
-    if not args.dev_only:
-        create_wd_folders(project_dir)
+    if not args.dev_no_env:
+        create_execution_environment(repo_location, args.root_path, args.conda_env)
+    else:
+        logger.info("Skipping Conda environment creation.")
+    if not args.dev_no_wd:
+        paths = load_constant_paths(args.constants)
+        create_wd_folders(args.root_path, paths)
+    else:
+        logger.info("Skipping creating working directory hierarchy.")
 
     return 0
 

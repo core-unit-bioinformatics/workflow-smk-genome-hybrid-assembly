@@ -401,7 +401,6 @@ def _extract_git_remote():
         )
         remotes = remotes.decode().strip().split("\n")
         remotes = [tuple(r.split()) for r in remotes]
-        remotes = [remote_tuple for remote_tuple in remotes if len(remote_tuple) > 0]
     except subprocess.CalledProcessError:
         error_msg = "ERROR:\n"
         error_msg += "Most likely, 'git' is not available in your $PATH\n."
@@ -463,7 +462,6 @@ def collect_git_labels():
 
         for option, label in zip(collect_options, info_labels):
             call = "git " + option
-            print(call)
             try:
                 # Important here to use DIR_SNAKEFILE (= the git repo location)
                 # and not WORK_DIR, which would be the pipeline working directory.
@@ -472,7 +470,6 @@ def collect_git_labels():
                 assert label in label_collection
                 label_collection[label] = out
             except subprocess.CalledProcessError as err:
-                print(err)
                 err_msg = f"\nERROR --- could not collect git info using call: {call}\n"
                 err_msg += f"Error message: {str(err)}\n"
                 err_msg += f"Call executed in path: {DIR_SNAKEFILE}\n"

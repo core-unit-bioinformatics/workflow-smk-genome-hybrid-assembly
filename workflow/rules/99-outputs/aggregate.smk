@@ -1,5 +1,0 @@
-
-WORKFLOW_OUTPUT = []
-
-# add Verkko output
-WORKFLOW_OUTPUT.extend(VERKKO_OUTPUT)

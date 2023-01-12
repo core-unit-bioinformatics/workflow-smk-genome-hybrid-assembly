@@ -3,13 +3,10 @@ pid = "undefined"
 name = "genome-hybrid-assembly"
 version = "prototype"
 
-# the template code used for prototype
-# development includes workarounds/fixes
-# for template-snakemake issues 14-17
 [cubi.workflow.template]
 pid = "undefined"
 system = "smk"
-version = "1.0.0-dirty-fix"
+version = "1.2.0"
 
 [tool.black]
 line-length = 88

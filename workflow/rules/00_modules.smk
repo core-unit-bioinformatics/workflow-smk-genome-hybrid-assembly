@@ -12,4 +12,3 @@ include: "00-prepare/verkko.smk"
 include: "10-assemble/verkko.smk"
 
 include: "99-outputs/verkko.smk"
-include: "99-outputs/aggregate.smk"

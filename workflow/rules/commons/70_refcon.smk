@@ -59,5 +59,7 @@ if USE_REFERENCE_CONTAINER:
                 merged_manifests, axis=0, ignore_index=False
             )
 
-            merged_manifests.to_csv(output.cache, header=True, index=False, sep="\t")
+            merged_manifests.to_csv(
+                output.cache, header=True, index=False, sep="\t"
+            )
             # END OF RUN BLOCK

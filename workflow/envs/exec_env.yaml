@@ -2,8 +2,8 @@ name: smk_exec_env
 dependencies:
   - Python=3.9.*
   - pip
-  - mamba=0.25.0
-  - snakemake=7.18.1
+  - mamba=1.1.0
+  - snakemake=7.19.1
   - portalocker=2.5.1
   - pandas=1.4.3
   - pytables=3.7.0
