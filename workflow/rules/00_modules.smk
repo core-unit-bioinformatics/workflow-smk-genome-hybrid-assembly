@@ -10,5 +10,6 @@ include: "00-prepare/sample_table.smk"
 include: "00-prepare/verkko.smk"
 
 include: "10-assemble/verkko.smk"
+include: "30-postprocess/verkko.smk"
 
 include: "99-outputs/verkko.smk"

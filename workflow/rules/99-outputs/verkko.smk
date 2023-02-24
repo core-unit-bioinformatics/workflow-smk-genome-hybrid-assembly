@@ -20,8 +20,14 @@ if RUN_VERKKO_TRIO_SAMPLES:
     VERKKO_OUTPUT.extend(
         rules.run_verkko_trio_samples.input.assemblies
     )
+    VERKKO_OUTPUT.extend(
+        rules.get_verkko_trio_graph_info.input.graph_tables
+    )
 
 if RUN_VERKKO_UNPHASED_SAMPLES:
     VERKKO_OUTPUT.extend(
         rules.run_verkko_unphased_samples.input.assemblies
+    )
+    VERKKO_OUTPUT.extend(
+        rules.get_verkko_unphased_graph_info.input.graph_tables
     )
