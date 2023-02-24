@@ -29,7 +29,7 @@ rule merge_verkko_trio_output:
         "--ont-node-cov {params.ont_cov} "
         "--rukki-colors {params.rukki_colors} "
         "--rukki-paths {params.rukki_paths} "
-        "--rukki-final {params.node_assign}"
+        "--rukki-final {params.node_assign} "
         "--out-table {output.table} "
         "--out-path-ids {output.paths}"
 
