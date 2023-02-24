@@ -14,13 +14,13 @@ rule merge_verkko_trio_output:
         "../../envs/pygraph.yaml"
     params:
         script = find_script("merge_verkko_infos"),
-        graph = lambda wc, input: input.vrk.joinpath("assembly.homopolymer-compressed.noseq.gfa"),
-        layout = lambda wc, input: input.vrk.joinpath("6-layoutContigs/unitig-popped.layout.scfmap"),
-        hifi_cov = lambda wc, input: input.vrk.joinpath("assembly.hifi-coverage.csv"),
-        ont_cov = lambda wc, input: input.vrk.joinpath("assembly.ont-coverage.csv"),
-        rukki_colors = lambda wc, input: input.vrk.joinpath("6-rukki/unitig-popped-unitig-normal-connected-tip.colors.csv"),
-        rukki_paths = lambda wc, input: input.vrk.joinpath("6-rukki/unitig-popped-unitig-normal-connected-tip.paths.tsv"),
-        node_assign = lambda wc, input: input.vrk.joinpath("6-rukki/out_final_ann.csv"),
+        graph = lambda wc, input: pathlib.Path(input.vrk).joinpath("assembly.homopolymer-compressed.noseq.gfa"),
+        layout = lambda wc, input: pathlib.Path(input.vrk).joinpath("6-layoutContigs/unitig-popped.layout.scfmap"),
+        hifi_cov = lambda wc, input: pathlib.Path(input.vrk).joinpath("assembly.hifi-coverage.csv"),
+        ont_cov = lambda wc, input: pathlib.Path(input.vrk).joinpath("assembly.ont-coverage.csv"),
+        rukki_colors = lambda wc, input: pathlib.Path(input.vrk).joinpath("6-rukki/unitig-popped-unitig-normal-connected-tip.colors.csv"),
+        rukki_paths = lambda wc, input: pathlib.Path(input.vrk).joinpath("6-rukki/unitig-popped-unitig-normal-connected-tip.paths.tsv"),
+        node_assign = lambda wc, input: pathlib.Path(input.vrk).joinpath("6-rukki/out_final_ann.csv"),
         acc_res = lambda wc, output: register_result(output)
     shell:
         "{params.script} --graph {params.graph} "
@@ -48,10 +48,10 @@ rule merge_verkko_unphased_output:
         "../../envs/pygraph.yaml"
     params:
         script = find_script("merge_verkko_infos"),
-        graph = lambda wc, input: input.vrk.joinpath("assembly.homopolymer-compressed.noseq.gfa"),
-        layout = lambda wc, input: input.vrk.joinpath("6-layoutContigs/unitig-popped.layout.scfmap"),
-        hifi_cov = lambda wc, input: input.vrk.joinpath("assembly.hifi-coverage.csv"),
-        ont_cov = lambda wc, input: input.vrk.joinpath("assembly.ont-coverage.csv"),
+        graph = lambda wc, input: pathlib.Path(input.vrk).joinpath("assembly.homopolymer-compressed.noseq.gfa"),
+        layout = lambda wc, input: pathlib.Path(input.vrk).joinpath("6-layoutContigs/unitig-popped.layout.scfmap"),
+        hifi_cov = lambda wc, input: pathlib.Path(input.vrk).joinpath("assembly.hifi-coverage.csv"),
+        ont_cov = lambda wc, input: pathlib.Path(input.vrk).joinpath("assembly.ont-coverage.csv"),
         acc_res = lambda wc, output: register_result(output)
     shell:
         "{params.script} --graph {params.graph} "
