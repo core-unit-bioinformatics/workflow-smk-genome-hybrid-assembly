@@ -4,10 +4,10 @@ rule merge_verkko_trio_output:
     input:
         vrk = DIR_PROC.joinpath("assemblies/verkko/{sample}.ps-trio")
     output:
-        paths = DIR_RESULTS.joinpath(
+        paths = DIR_RES.joinpath(
             "assemblies/verkko/{sample}/{sample}.ps-trio.rukki-paths.tsv"
         ),
-        table = DIR_RESULTS.joinpath(
+        table = DIR_RES.joinpath(
             "assemblies/verkko/{sample}/{sample}.ps-trio.graph-info.tsv"
         ),
     conda:
@@ -38,10 +38,10 @@ rule merge_verkko_unphased_output:
     input:
         vrk = DIR_PROC.joinpath("assemblies/verkko/{sample}.ps-none")
     output:
-        paths = DIR_RESULTS.joinpath(
+        paths = DIR_RES.joinpath(
             "assemblies/verkko/{sample}/{sample}.ps-none.rukki-paths.tsv"
         ),
-        table = DIR_RESULTS.joinpath(
+        table = DIR_RES.joinpath(
             "assemblies/verkko/{sample}/{sample}.ps-none.graph-info.tsv"
         ),
     conda:
@@ -63,7 +63,7 @@ rule merge_verkko_unphased_output:
 
 rule get_verkko_trio_graph_info:
     input:
-        graph_tables = expand(DIR_RESULTS.joinpath(
+        graph_tables = expand(DIR_RES.joinpath(
             "assemblies/verkko/{sample}/{sample}.ps-trio.graph-info.tsv"),
             sample=TRIO_SAMPLES
         ),
@@ -71,7 +71,7 @@ rule get_verkko_trio_graph_info:
 
 rule get_verkko_unphased_graph_info:
     input:
-        graph_tables = expand(DIR_RESULTS.joinpath(
+        graph_tables = expand(DIR_RES.joinpath(
             "assemblies/verkko/{sample}/{sample}.ps-none.graph-info.tsv"),
             sample=UNPHASED_SAMPLES
         ),
