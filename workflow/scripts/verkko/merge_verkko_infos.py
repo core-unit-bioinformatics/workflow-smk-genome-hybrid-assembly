@@ -26,7 +26,8 @@ CONTIG_UNITIG_PIECES = {
     "pieces_path": None,
     "total_gap_length": 0,
     "default_gaps": 0,
-    "min_gaps": 0
+    "min_gaps": 0,
+    "ambiguous": 0
 }
 
 
@@ -180,7 +181,16 @@ def read_layout_file(file_path):
                 current_utg = tig_infos["unitig"]
             elif line.startswith("piece"):
                 piece = line.strip()
-                assert current_utg not in tig_mapping
+                if current_utg in tig_mapping:
+                    first_entry = tig_mapping[current_utg]
+                    first_entry["ambiguous"] = 1
+                    first_entry["contig"] += f"|{tig_infos['contig']}"
+                    first_entry["hap"] = "H0"
+                    first_entry["layout_assigned"] = "undefined"
+                    first_entry["contig_pieces"] = first_entry["contig_pieces"].split(",")
+                    first_entry["pieces_path"] = first_entry["pieces_path"].split("->-")
+                    tig_infos = first_entry
+                #assert current_utg not in tig_mapping, f"Duplicate: {current_utg}"
                 assert current_utg is not None
                 try:
                     tig_infos["contig_pieces"].append(piece)
@@ -198,8 +208,12 @@ def read_layout_file(file_path):
                 else:
                     pass
             elif line.startswith("end"):
-                tig_infos["contig_pieces"] = ",".join(tig_infos["contig_pieces"])
-                tig_infos["pieces_path"] = "->-".join(tig_infos["pieces_path"])
+                if tig_infos["ambiguous"] == 1:
+                    tig_infos["contig_pieces"] = "|".join(tig_infos["contig_pieces"])
+                    tig_infos["pieces_path"] = "|".join(tig_infos["pieces_path"])
+                else:
+                    tig_infos["contig_pieces"] = ",".join(tig_infos["contig_pieces"])
+                    tig_infos["pieces_path"] = "->-".join(tig_infos["pieces_path"])
                 tig_mapping[tig_infos["unitig"]] = dict(tig_infos)
                 tig_infos = None
                 current_utg = None
@@ -385,7 +399,7 @@ def main():
         "cc_id", "cc_size", "cc_length_hpc", "node_length_hpc",
         "layout_assigned", "is_used", "contig_pieces", "pieces_path",
         "total_gap_length", "default_gaps", "min_gaps",
-        "node_num"
+        "ambiguous", "node_num"
     ]
     order_columns = [c for c in order_columns if c not in opt_columns]
     assert all([c in order_columns for c in unitigs.columns])
