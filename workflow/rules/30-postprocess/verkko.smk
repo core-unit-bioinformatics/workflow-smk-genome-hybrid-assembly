@@ -39,9 +39,6 @@ rule merge_verkko_unphased_output:
     input:
         vrk = DIR_PROC.joinpath("assemblies/verkko/{sample}.ps-none")
     output:
-        paths = DIR_RES.joinpath(
-            "assemblies/verkko/{sample}/{sample}.ps-none.rukki-paths.tsv"
-        ),
         table = DIR_RES.joinpath(
             "assemblies/verkko/{sample}/{sample}.ps-none.graph-info.tsv"
         ),
