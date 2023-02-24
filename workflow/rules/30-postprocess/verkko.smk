@@ -34,6 +34,7 @@ rule merge_verkko_trio_output:
         "--out-path-ids {output.paths}"
 
 
+localrules: merge_verkko_unphased_output
 rule merge_verkko_unphased_output:
     input:
         vrk = DIR_PROC.joinpath("assemblies/verkko/{sample}.ps-none")
