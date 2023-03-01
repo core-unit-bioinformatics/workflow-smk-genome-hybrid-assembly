@@ -49,6 +49,14 @@ def parse_command_line():
         help="Path to Verkko output graph (GFA; assembly.homopolymer-compressed.gfa)."
     )
     parser.add_argument(
+        "--fasta",
+        "-f",
+        type=lambda x: pl.Path(x).resolve(strict=False),
+        default=None,
+        dest="fasta",
+        help="Path to assembly FASTA to add contig length in uncompressed bp (assembly.fasta)."
+    )
+    parser.add_argument(
         "--scf-layout",
         "-sl",
         type=lambda x: pl.Path(x).resolve(strict=True),
@@ -339,9 +347,39 @@ def process_rukki_color_table(unitigs, color_path):
     return unitigs
 
 
+def read_sequence_lengths(fasta_path):
+
+    contig_lengths = col.Counter()
+    current_contig = None
+    contig_length = 0
+    with open(fasta_path, "r") as fasta:
+        for line in fasta:
+            if line.startswith(">"):
+                if current_contig is not None:
+                    contig_lengths[current_contig] = contig_length
+                current_contig = line.strip()[1:]
+                contig_length = 0
+            elif line.strip():
+                contig_length += len(line)
+            else:
+                continue
+    contig_lengths[current_contig] = contig_length
+    return contig_lengths
+
+
 def main():
 
     args = parse_command_line()
+
+    # record optional columns for output re-ordering
+    opt_columns = []
+    if args.fasta is not None:
+        assert args.fasta.is_file()
+        contig_lengths = read_sequence_lengths(args.fasta)
+    else:
+        opt_columns = opt_columns["contig_length_bp"]
+        contig_lengths = None
+
 
     graph, node_lengths = build_graph(args.graph)
     # create tig mapping
@@ -360,7 +398,10 @@ def main():
     unitigs["ont_cov"].fillna(0, inplace=True)
     assert not pd.isnull(unitigs).all(axis=0).all()
 
-    opt_columns = []
+    if contig_lengths is not None:
+        # NB: use of collection.Counter() implied auto-default of 0
+        unitigs["contig_length_bp"] = unitigs["contig"].apply(lambda x: contig_lengths[x])
+
     if args.rukki_paths is not None:
         paths, nodes_to_path_id = compute_rukki_path_ids(args.rukki_paths)
         unitigs["path_id"] = unitigs["unitig"].apply(
@@ -394,7 +435,8 @@ def main():
 
     order_columns = [
         "node", "hap", "mat_marker", "pat_marker",
-        "rukki_color", "contig", "node_class", "mat_div_pat",
+        "rukki_color", "contig", "contig_length_bp",
+        "node_class", "mat_div_pat",
         "hifi_cov", "ont_cov", "class_color", "path_id",
         "cc_id", "cc_size", "cc_length_hpc", "node_length_hpc",
         "layout_assigned", "is_used", "contig_pieces", "pieces_path",

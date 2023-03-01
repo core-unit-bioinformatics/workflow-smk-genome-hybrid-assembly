@@ -15,6 +15,7 @@ rule merge_verkko_trio_output:
     params:
         script = find_script("merge_verkko_infos"),
         graph = lambda wc, input: pathlib.Path(input.vrk).joinpath("assembly.homopolymer-compressed.noseq.gfa"),
+        fasta = lambda wc, input: pathlib.Path(input.vrk).joinpath("assembly.fasta"),
         layout = lambda wc, input: pathlib.Path(input.vrk).joinpath("6-layoutContigs/unitig-popped.layout.scfmap"),
         hifi_cov = lambda wc, input: pathlib.Path(input.vrk).joinpath("assembly.hifi-coverage.csv"),
         ont_cov = lambda wc, input: pathlib.Path(input.vrk).joinpath("assembly.ont-coverage.csv"),
@@ -24,6 +25,7 @@ rule merge_verkko_trio_output:
         acc_res = lambda wc, output: register_result(output)
     shell:
         "{params.script} --graph {params.graph} "
+        "--fasta {params.fasta} "
         "--scf-layout {params.layout} "
         "--hifi-node-cov {params.hifi_cov} "
         "--ont-node-cov {params.ont_cov} "
@@ -47,12 +49,14 @@ rule merge_verkko_unphased_output:
     params:
         script = find_script("merge_verkko_infos"),
         graph = lambda wc, input: pathlib.Path(input.vrk).joinpath("assembly.homopolymer-compressed.noseq.gfa"),
+        fasta = lambda wc, input: pathlib.Path(input.vrk).joinpath("assembly.fasta"),
         layout = lambda wc, input: pathlib.Path(input.vrk).joinpath("6-layoutContigs/unitig-popped.layout.scfmap"),
         hifi_cov = lambda wc, input: pathlib.Path(input.vrk).joinpath("assembly.hifi-coverage.csv"),
         ont_cov = lambda wc, input: pathlib.Path(input.vrk).joinpath("assembly.ont-coverage.csv"),
         acc_res = lambda wc, output: register_result(output)
     shell:
         "{params.script} --graph {params.graph} "
+        "--fasta {params.fasta} "
         "--scf-layout {params.layout} "
         "--hifi-node-cov {params.hifi_cov} "
         "--ont-node-cov {params.ont_cov} "
