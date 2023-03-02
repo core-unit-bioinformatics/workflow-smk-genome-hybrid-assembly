@@ -2,6 +2,7 @@
 
 import argparse as argp
 import collections as col
+import functools as fnt
 import hashlib as hl
 import pathlib as pl
 
@@ -367,6 +368,33 @@ def read_sequence_lengths(fasta_path):
     return contig_lengths
 
 
+def assign_contig_length(contig_lengths, contig):
+    """This function is necessary to deal with the
+    ambiguous assignments that occur every now and then:
+
+    haplotype1-0000484|haplotype2-0002728
+
+    Args:
+        contig (_type_): _description_
+        contig_lengths (_type_): _description_
+    """
+
+    contig_length = contig_lengths[contig]
+    if contig_length == 0:
+        if "|" in contig:
+            # ambig. assignment
+            total = 0
+            individual = []
+            for ctg in contig.split("|"):
+                ctg_len = contig_lengths[ctg]
+                total += ctg_len
+                individual.append(str(ctg_len))
+            individual = "|".join(individual)
+            contig_length = f"SUM:{total}|{individual}"
+    # unfortunate consequence: numbers as strings
+    return str(contig_length)
+
+
 def main():
 
     args = parse_command_line()
@@ -400,7 +428,8 @@ def main():
 
     if contig_lengths is not None:
         # NB: use of collection.Counter() implied auto-default of 0
-        unitigs["contig_length_bp"] = unitigs["contig"].apply(lambda x: contig_lengths[x])
+        assign_length = fnt.partial(assign_contig_length, contig_lengths)
+        unitigs["contig_length_bp"] = unitigs["contig"].apply(assign_length)
 
     if args.rukki_paths is not None:
         paths, nodes_to_path_id = compute_rukki_path_ids(args.rukki_paths)
