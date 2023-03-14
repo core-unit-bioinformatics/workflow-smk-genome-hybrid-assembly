@@ -16,30 +16,30 @@ rule verkko_trio_samples:
         hap2_db = lambda wildcards: MAP_SAMPLE_TO_INPUT_FILES[wildcards.sample]["hap2"],
         profile = ancient(config["verkko_smk_profile"]),
     output:
-        wd = directory(
-            DIR_PROC.joinpath("assemblies/verkko/{sample}.ps-trio")
-        ),
         done = DIR_PROC.joinpath("assemblies/verkko/{sample}.ps-trio.ok")
     log:
         DIR_LOG.joinpath("assemblies/verkko/{sample}.ps-trio.log")
     benchmark:
         DIR_RSRC.joinpath("assemblies/verkko/{sample}.ps-trio.rsrc")
     conda:
-        "../../envs/verkko.yaml"
+        DIR_ENVS.joinpath("verkko.yaml")
     wildcard_constraints:
         sample = CONSTRAINT_TRIO_SAMPLES
     params:
-        dryrun = "--dry-run" if VERKKO_DRY_RUN else "",
-        check = lambda wildcards, output: "" if VERKKO_DRY_RUN else f" && touch {output.done}",
+        dryrun="--dry-run" if VERKKO_DRY_RUN else "",
+        check=lambda wildcards, output: "" if VERKKO_DRY_RUN else f" && touch {output.done}",
         acc_in=lambda wildcards, input: register_input(input.hifi, input.nano),
+        screen=assemble_verkko_screen_string
     shell:
         "/usr/bin/time -v "
         "verkko --lsf "
             "--python `which python` "
             "--mbg `which MBG` "
             "--graphaligner `which GraphAligner` "
+            "--mashmap `which mashmap` "
             "--hifi {input.hifi} "
             "--nano {input.nano} "
+            "{params.screen} "
             "-d {output.wd} "
             "--hap-kmers {input.hap1_db} {input.hap2_db} trio "
             "--snakeopts \"--profile $PWD/{input.profile} {params.dryrun}\" "
@@ -62,30 +62,30 @@ rule verkko_unphased_samples:
         nano = lambda wildcards: MAP_SAMPLE_TO_INPUT_FILES[wildcards.sample]["ont"],
         profile = ancient(config["verkko_smk_profile"]),
     output:
-        wd = directory(
-            DIR_PROC.joinpath("assemblies/verkko/{sample}.ps-none")
-        ),
         done = DIR_PROC.joinpath("assemblies/verkko/{sample}.ps-none.ok")
     log:
         DIR_LOG.joinpath("assemblies/verkko/{sample}.ps-none.log")
     benchmark:
         DIR_RSRC.joinpath("assemblies/verkko/{sample}.ps-none.rsrc")
     conda:
-        "../../envs/verkko.yaml"
+        DIR_ENVS.joinpath("verkko.yaml")
     wildcard_constraints:
         sample = CONSTRAINT_UNPHASED_SAMPLES
     params:
         dryrun = "--dry-run" if VERKKO_DRY_RUN else "",
         check = lambda wildcards, output: "" if VERKKO_DRY_RUN else f" && touch {output.done}",
         acc_in=lambda wildcards, input: register_input(input.hifi, input.nano),
+        screen=assemble_verkko_screen_string
     shell:
         "/usr/bin/time -v "
         "verkko --lsf "
             "--python `which python` "
             "--mbg `which MBG` "
             "--graphaligner `which GraphAligner` "
+            "--mashmap `which mashmap` "
             "--hifi {input.hifi} "
             "--nano {input.nano} "
+            "{params.screen} "
             "-d {output.wd} "
             "--snakeopts \"--profile $PWD/{input.profile} {params.dryrun}\" "
             "&> {log} {params.check}"

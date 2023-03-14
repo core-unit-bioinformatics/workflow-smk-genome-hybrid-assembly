@@ -1,4 +1,7 @@
 
+DATA_ROOT = config.get("data_root", "/")
+DATA_ROOT = pathlib.Path(DATA_ROOT).resolve(strict=True)
+
 VERKKO_DRY_RUN = config.get("verkko_dry_run", False)
 
 RUN_VERKKO_TEST_LOCAL = config.get("run_verkko_test_local", True)

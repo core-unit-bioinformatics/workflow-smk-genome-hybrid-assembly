@@ -86,6 +86,33 @@ def collect_input_files(sample_sheet):
     return sample_input, trio_samples, unphased_samples
 
 
+def _read_input_files_from_fofn(fofn_path):
+    """Read input file listing from
+    file of file names
+    TODO: candidate for inclusion in template
+    """
+
+    input_files = []
+    with open(fofn_path, "w") as listing:
+        for line in listing:
+            if not line.strip():
+                continue
+            try:
+                file_path = pathlib.Path(line.strip()).resolve(strict=True)
+            except FileNotFoundError:
+                try:
+                    file_path = DATA_ROOT.joinpath(line.strip()).resolve(strict=True)
+                except FileNotFoundError:
+                    err_msg = "\nERROR\n"
+                    err_msg += f"Cannot find file: {line.strip}\n"
+                    err_msg += f"Data root is set to: {DATA_ROOT}\n"
+                    sys.stderr.write(err_msg)
+                    raise
+            input_files.append(file_path)
+
+    return sorted(input_files)
+
+
 def collect_sequence_input(path_spec):
     """
     Generic function to collect HiFi or ONT/Nanopore
@@ -95,6 +122,13 @@ def collect_sequence_input(path_spec):
     input_hashes = []
     for sub_input in path_spec.split(","):
         input_path = pathlib.Path(sub_input).resolve()
+        if input_path.is_file() and input_path.name.endswith(".fofn"):
+            fofn_files = _read_input_files_from_fofn(input_path)
+            fofn_files = [
+                hashlib.sha256(str(f).encode("utf-8")).hexdigest() for f in fofn_files
+            ]
+            input_files.extend(collected_files)
+            input_hashes.extend(collected_hashes)
         if input_path.is_file():
             input_hash = hashlib.sha256(str(input_path).encode("utf-8")).hexdigest()
             input_files.append(input_path)

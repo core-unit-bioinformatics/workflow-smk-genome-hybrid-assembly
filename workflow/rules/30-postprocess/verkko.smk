@@ -11,7 +11,7 @@ rule merge_verkko_trio_output:
             "assemblies/verkko/{sample}/{sample}.ps-trio.graph-info.tsv"
         ),
     conda:
-        "../../envs/pygraph.yaml"
+        DIR_ENVS.joinpath("pygraph.yaml")
     params:
         script = find_script("merge_verkko_infos"),
         graph = lambda wc, input: pathlib.Path(input.vrk).joinpath("assembly.homopolymer-compressed.noseq.gfa"),
@@ -45,7 +45,7 @@ rule merge_verkko_unphased_output:
             "assemblies/verkko/{sample}/{sample}.ps-none.graph-info.tsv"
         ),
     conda:
-        "../../envs/pygraph.yaml"
+        DIR_ENVS.joinpath("pygraph.yaml")
     params:
         script = find_script("merge_verkko_infos"),
         graph = lambda wc, input: pathlib.Path(input.vrk).joinpath("assembly.homopolymer-compressed.noseq.gfa"),
