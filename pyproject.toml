@@ -1,7 +1,7 @@
 [cubi.workflow]
 pid = "undefined"
 name = "genome-hybrid-assembly"
-version = "prototype"
+version = "1.2.0-ptyp"
 
 [cubi.workflow.template]
 pid = "undefined"
