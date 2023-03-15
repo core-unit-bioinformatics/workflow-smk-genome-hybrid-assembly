@@ -113,6 +113,25 @@ def _read_input_files_from_fofn(fofn_path):
     return sorted(input_files)
 
 
+def subset_path(full_path):
+    """This helper exists to reduce
+    the absolute path to a file
+    to just the file name and its
+    parent.
+    TODO: should be codified as part
+    of the template utilities to improve
+    infrastructure portability of active
+    workflows
+    """
+    folder_name = full_path.parent.name
+    file_name = full_path.name
+    subset_path = f"{folder_name}/{file_name}"
+    # if it so happens that the file resides
+    # in a root-level location, strip off
+    # leading slash
+    return subset_path.strip("/")
+
+
 def collect_sequence_input(path_spec):
     """
     Generic function to collect HiFi or ONT/Nanopore
@@ -125,18 +144,24 @@ def collect_sequence_input(path_spec):
         if input_path.is_file() and input_path.name.endswith(".fofn"):
             fofn_files = _read_input_files_from_fofn(input_path)
             fofn_files = [
-                hashlib.sha256(str(f).encode("utf-8")).hexdigest() for f in fofn_files
+                hashlib.sha256(
+                    subset_path(fp).encode("utf-8")
+                ).hexdigest() for fp in fofn_files
             ]
             input_files.extend(collected_files)
             input_hashes.extend(collected_hashes)
-        if input_path.is_file():
-            input_hash = hashlib.sha256(str(input_path).encode("utf-8")).hexdigest()
+        elif input_path.is_file():
+            input_hash = hashlib.sha256(
+                subset_path(input_path).encode("utf-8")
+            ).hexdigest()
             input_files.append(input_path)
             input_hashes.append(input_hash)
         elif input_path.is_dir():
             collected_files = _collect_files(input_path)
             collected_hashes = [
-                hashlib.sha256(str(f).encode("utf-8")).hexdigest() for f in collected_files
+                hashlib.sha256(
+                    subset_path(fp).encode("utf-8")
+                ).hexdigest() for fp in collected_files
             ]
             input_files.extend(collected_files)
             input_hashes.extend(collected_hashes)
