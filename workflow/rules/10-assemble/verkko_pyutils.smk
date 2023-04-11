@@ -32,3 +32,16 @@ def assemble_verkko_screen_string():
 
     return screen_opt
 
+
+def increase_mbg_resources(attempt):
+    """For some HiFi datasets, MBG requires
+    much more time to build the initial graph.
+    This helper function exists to directly
+    increase the MBG resource requirements
+    if the Verkko run is restarted.
+    """
+    mbg_resources = ""
+    if int(attempt) > 1:
+        # this is CPU - MEM_GB - TIME_HRS
+        mbg_resources = "--mbg-run 8 160 72"
+    return mbg_resources

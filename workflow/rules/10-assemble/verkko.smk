@@ -30,7 +30,8 @@ rule verkko_trio_samples:
         check=lambda wildcards, output: "" if VERKKO_DRY_RUN else f" && touch {output.done}",
         acc_in=lambda wildcards, input: register_input(input.hifi, input.nano),
         screen=assemble_verkko_screen_string,
-        wd=lambda wildcards, output: pathlib.Path(output.done).with_suffix(".wd")
+        wd=lambda wildcards, output: pathlib.Path(output.done).with_suffix(".wd"),
+        mbg_rsrc=lambda wildcards, attempt: increase_mbg_resources(attempt)
     shell:
         "/usr/bin/time -v "
         "verkko --lsf "
@@ -42,6 +43,7 @@ rule verkko_trio_samples:
             "--nano {input.nano} "
             "{params.screen} "
             "-d {params.wd} "
+            "{params.mbg_rsrc} "
             "--hap-kmers {input.hap1_db} {input.hap2_db} trio "
             "--snakeopts \"--profile $PWD/{input.profile} {params.dryrun}\" "
             "&> {log} {params.check}"
@@ -77,7 +79,8 @@ rule verkko_unphased_samples:
         check = lambda wildcards, output: "" if VERKKO_DRY_RUN else f" && touch {output.done}",
         acc_in=lambda wildcards, input: register_input(input.hifi, input.nano),
         screen=assemble_verkko_screen_string,
-        wd=lambda wildcards, output: pathlib.Path(output.done).with_suffix(".wd")
+        wd=lambda wildcards, output: pathlib.Path(output.done).with_suffix(".wd"),
+        mbg_rsrc=lambda wildcards, attempt: increase_mbg_resources(attempt)
     shell:
         "/usr/bin/time -v "
         "verkko --lsf "
@@ -89,6 +92,7 @@ rule verkko_unphased_samples:
             "--nano {input.nano} "
             "{params.screen} "
             "-d {params.wd} "
+            "{params.mbg_rsrc} "
             "--snakeopts \"--profile $PWD/{input.profile} {params.dryrun}\" "
             "&> {log} {params.check}"
 
