@@ -14,9 +14,6 @@ rule run_verkko_test_local:
         hifi = rules.load_verkko_testdata.output.hifi,
         nano = rules.load_verkko_testdata.output.nano,
     output:
-        wd = directory(
-            DIR_PROC.joinpath("testdata/verkko/local/assembly")
-        ),
         done = DIR_PROC.joinpath("testdata/verkko/local/assembly.ok")
     log:
         DIR_LOG.joinpath("testdata/verkko/local/assembly.log")
@@ -31,7 +28,8 @@ rule run_verkko_test_local:
         time_hrs = lambda wildcards, attempt: attempt * attempt,
     params:
         dryrun = "--dry-run" if VERKKO_DRY_RUN else "",
-        check = lambda wildcards, output: "" if VERKKO_DRY_RUN else f" && touch {output.done}"
+        check = lambda wildcards, output: "" if VERKKO_DRY_RUN else f" && touch {output.done}",
+        wd=lambda wildcards, output: pathlib.Path(output.done).with_suffix(".wd")
     shell:
         "/usr/bin/time -v "
         "verkko --local "
@@ -41,9 +39,10 @@ rule run_verkko_test_local:
             "--python `which python` "
             "--mbg `which MBG` "
             "--graphaligner `which GraphAligner` "
+            "--mashmap `which mashmap` "
             "--hifi {input.hifi} "
             "--nano {input.nano} "
-            "-d {output.wd} "
+            "-d {params.wd} "
             "--snakeopts \"--restart-times 1 {params.dryrun}\" "
             " &> {log} {params.check}"
 
@@ -64,9 +63,6 @@ rule run_verkko_test_cluster:
         nano = rules.load_verkko_testdata.output.nano,
         profile = ancient(config["verkko_smk_profile"]),
     output:
-        wd = directory(
-            DIR_PROC.joinpath("testdata/verkko/cluster/assembly")
-        ),
         done = DIR_PROC.joinpath("testdata/verkko/cluster/assembly.ok")
     log:
         DIR_LOG.joinpath("testdata/verkko/cluster/assembly.log")
@@ -76,16 +72,18 @@ rule run_verkko_test_cluster:
         DIR_ENVS.joinpath("verkko.yaml")
     params:
         dryrun = "--dry-run" if VERKKO_DRY_RUN else "",
-        check = lambda wildcards, output: "" if VERKKO_DRY_RUN else f" && touch {output.done}"
+        check = lambda wildcards, output: "" if VERKKO_DRY_RUN else f" && touch {output.done}",
+        wd=lambda wildcards, output: pathlib.Path(output.done).with_suffix(".wd")
     shell:
         "/usr/bin/time -v "
         "verkko --lsf "
             "--python `which python` "
             "--mbg `which MBG` "
             "--graphaligner `which GraphAligner` "
+            "--mashmap `which mashmap` "
             "--hifi {input.hifi} "
             "--nano {input.nano} "
-            "-d {output.wd} "
+            "-d {params.wd} "
             "--snakeopts \"--profile $PWD/{input.profile} {params.dryrun}\" "
             "&> {log} {params.check}"
 
@@ -94,6 +92,6 @@ localrules: run_verkko_tests
 rule run_verkko_tests:
     input:
         assm_dirs = [
-            DIR_PROC.joinpath("testdata/verkko/local/assembly"),
-            DIR_PROC.joinpath("testdata/verkko/cluster/assembly")
+            DIR_PROC.joinpath("testdata/verkko/local/assembly.ok"),
+            DIR_PROC.joinpath("testdata/verkko/cluster/assembly.ok")
         ]
