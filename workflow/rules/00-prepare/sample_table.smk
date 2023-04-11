@@ -93,7 +93,7 @@ def _read_input_files_from_fofn(fofn_path):
     """
 
     input_files = []
-    with open(fofn_path, "w") as listing:
+    with open(fofn_path, "r") as listing:
         for line in listing:
             if not line.strip():
                 continue
