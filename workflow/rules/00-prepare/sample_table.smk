@@ -143,13 +143,13 @@ def collect_sequence_input(path_spec):
         input_path = pathlib.Path(sub_input).resolve()
         if input_path.is_file() and input_path.name.endswith(".fofn"):
             fofn_files = _read_input_files_from_fofn(input_path)
-            fofn_files = [
+            fofn_hashes = [
                 hashlib.sha256(
                     subset_path(fp).encode("utf-8")
                 ).hexdigest() for fp in fofn_files
             ]
-            input_files.extend(collected_files)
-            input_hashes.extend(collected_hashes)
+            input_files.extend(fofn_files)
+            input_hashes.extend(fofn_hashes)
         elif input_path.is_file():
             input_hash = hashlib.sha256(
                 subset_path(input_path).encode("utf-8")
