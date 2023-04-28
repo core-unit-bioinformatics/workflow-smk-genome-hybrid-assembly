@@ -29,7 +29,7 @@ rule verkko_trio_samples:
         dryrun="--dry-run" if VERKKO_DRY_RUN else "",
         check=lambda wildcards, output: "" if VERKKO_DRY_RUN else f" && touch {output.done}",
         acc_in=lambda wildcards, input: register_input(input.hifi, input.nano),
-        screen=assemble_verkko_screen_string,
+        screen=lambda wildcards: assemble_verkko_screen_string(),
         wd=lambda wildcards, output: pathlib.Path(output.done).with_suffix(".wd"),
         mbg_rsrc=lambda wildcards, attempt: increase_mbg_resources(attempt)
     shell:
@@ -78,7 +78,7 @@ rule verkko_unphased_samples:
         dryrun = "--dry-run" if VERKKO_DRY_RUN else "",
         check = lambda wildcards, output: "" if VERKKO_DRY_RUN else f" && touch {output.done}",
         acc_in=lambda wildcards, input: register_input(input.hifi, input.nano),
-        screen=assemble_verkko_screen_string,
+        screen=lambda wildcards: assemble_verkko_screen_string(),
         wd=lambda wildcards, output: pathlib.Path(output.done).with_suffix(".wd"),
         mbg_rsrc=lambda wildcards, attempt: increase_mbg_resources(attempt)
     shell:

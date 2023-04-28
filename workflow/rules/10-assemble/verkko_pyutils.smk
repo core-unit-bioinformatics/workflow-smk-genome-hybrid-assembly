@@ -1,5 +1,5 @@
 
-def assemble_verkko_screen_string(wildcards):
+def assemble_verkko_screen_string():
     """This helper function exists to
     properly assemble the command line
     string for Verkko's >screen< option,
