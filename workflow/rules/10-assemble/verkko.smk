@@ -25,13 +25,14 @@ rule verkko_trio_samples:
         DIR_ENVS.joinpath("verkko.yaml")
     wildcard_constraints:
         sample = CONSTRAINT_TRIO_SAMPLES
+    resources:
+        mbg_rsrc=lambda wildcards, attempt: increase_mbg_resources(attempt)
     params:
         dryrun="--dry-run" if VERKKO_DRY_RUN else "",
         check=lambda wildcards, output: "" if VERKKO_DRY_RUN else f" && touch {output.done}",
         acc_in=lambda wildcards, input: register_input(input.hifi, input.nano),
         screen=lambda wildcards: assemble_verkko_screen_string(),
         wd=lambda wildcards, output: pathlib.Path(output.done).with_suffix(".wd"),
-        mbg_rsrc=lambda wildcards, attempt: increase_mbg_resources(attempt)
     shell:
         "/usr/bin/time -v "
         "verkko --lsf "
@@ -43,7 +44,7 @@ rule verkko_trio_samples:
             "--nano {input.nano} "
             "{params.screen} "
             "-d {params.wd} "
-            "{params.mbg_rsrc} "
+            "{resources.mbg_rsrc} "
             "--hap-kmers {input.hap1_db} {input.hap2_db} trio "
             "--snakeopts \"--profile $PWD/{input.profile} {params.dryrun}\" "
             "&> {log} {params.check}"
@@ -74,13 +75,14 @@ rule verkko_unphased_samples:
         DIR_ENVS.joinpath("verkko.yaml")
     wildcard_constraints:
         sample = CONSTRAINT_UNPHASED_SAMPLES
+    resources:
+        mbg_rsrc=lambda wildcards, attempt: increase_mbg_resources(attempt)
     params:
         dryrun = "--dry-run" if VERKKO_DRY_RUN else "",
         check = lambda wildcards, output: "" if VERKKO_DRY_RUN else f" && touch {output.done}",
         acc_in=lambda wildcards, input: register_input(input.hifi, input.nano),
         screen=lambda wildcards: assemble_verkko_screen_string(),
         wd=lambda wildcards, output: pathlib.Path(output.done).with_suffix(".wd"),
-        mbg_rsrc=lambda wildcards, attempt: increase_mbg_resources(attempt)
     shell:
         "/usr/bin/time -v "
         "verkko --lsf "
@@ -92,7 +94,7 @@ rule verkko_unphased_samples:
             "--nano {input.nano} "
             "{params.screen} "
             "-d {params.wd} "
-            "{params.mbg_rsrc} "
+            "{resources.mbg_rsrc} "
             "--snakeopts \"--profile $PWD/{input.profile} {params.dryrun}\" "
             "&> {log} {params.check}"
 
