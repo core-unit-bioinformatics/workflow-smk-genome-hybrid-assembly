@@ -39,9 +39,42 @@ def increase_mbg_resources(attempt):
     This helper function exists to directly
     increase the MBG resource requirements
     if the Verkko run is restarted.
+
+    In Verkko v1.3.1, this pertains to ...
+    ... option string `--mbg-run`
+    and affects settings ...
+    #  build-graph
+    mbg_n_cpus:          '4'
+    mbg_mem_gb:          '0'
+    mbg_time_h:          '72'
+    ... for rule `1-buildGraph.sm::buildGraph`
     """
     mbg_resources = ""
     if int(attempt) > 1:
         # this is CPU - MEM_GB - TIME_HRS
         mbg_resources = "--mbg-run 8 160 72"
     return mbg_resources
+
+
+def increase_process_ont_resources(attempt):
+    """Singular cases where processing the ONT
+    paths is OOM killed. Use the same strategy
+    as above and increase the initial job
+    resources if Verkko is restarted
+    (NB: Verkko also restarts its jobs)
+
+    In Verkko v1.3.1, this pertains to...
+    ... option string `--pop-run`
+    and affects settings ...
+    #  process_ont_paths
+    pop_n_cpus:          '1'
+    pop_mem_gb:          '64'
+    pop_time_h:          '24'
+    ... for rule `4-processONT.sm::processONT`
+    """
+    pop_resources = ""
+    if int(attempt) > 1:
+        # this is CPU - MEM_GB - TIME_HRS
+        pop_resources = "--pop-run 1 96 48"
+    return pop_resources
+
