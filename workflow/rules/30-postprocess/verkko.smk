@@ -13,7 +13,7 @@ rule collect_verkko_output_files:
         base_dir = WORKDIR
     shell:
         "{params.script} --verkko-wd {params.verkko_wd} --base-dir {params.base_dir} "
-            "--delete-logs --output {output.file_collection}"
+            "--delete-logs --sample {wildcards.sample} --output {output.file_collection}"
 
 
 localrules: merge_verkko_trio_output
