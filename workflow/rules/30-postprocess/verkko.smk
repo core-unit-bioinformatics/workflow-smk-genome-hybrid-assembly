@@ -1,4 +1,21 @@
 
+localrules: collect_verkko_output_files
+rule collect_verkko_output_files:
+    input:
+        check_file = DIR_PROC.joinpath("assemblies/verkko/{sample}.{phasing_state}.ok")
+    output:
+        file_collection = DIR_PROC.joinpath("assemblies/verkko/{sample}.{phasing_state}.output.json")
+    conda:
+        DIR_ENVS.joinpath("pygraph.yaml")
+    params:
+        script = find_script("collect_verkko_output"),
+        verkko_wd = lambda wildcards, input: pathlib.Path(input.check_file).with_suffix(".wd"),
+        base_dir = WORKDIR
+    shell:
+        "{params.script} --verkko-wd {params.verkko_wd} --base-dir {params.base_dir} "
+            "--delete-logs --output {output.file_collection}"
+
+
 localrules: merge_verkko_trio_output
 rule merge_verkko_trio_output:
     input:
@@ -63,17 +80,21 @@ rule merge_verkko_unphased_output:
         "--out-table {output.table} "
 
 
-rule get_verkko_trio_graph_info:
+rule get_verkko_trio_output_files:
     input:
-        graph_tables = expand(DIR_RES.joinpath(
-            "assemblies/verkko/{sample}/{sample}.ps-trio.graph-info.tsv"),
+        file_collect = expand(
+            DIR_PROC.joinpath(
+                "assemblies/verkko/{sample}.ps-trio.output.json"
+            ),
             sample=TRIO_SAMPLES
         ),
 
 
-rule get_verkko_unphased_graph_info:
+rule get_verkko_unphased_output_files:
     input:
-        graph_tables = expand(DIR_RES.joinpath(
-            "assemblies/verkko/{sample}/{sample}.ps-none.graph-info.tsv"),
+        file_collect = expand(
+            DIR_PROC.joinpath(
+                "assemblies/verkko/{sample}.ps-none.output.json"
+            ),
             sample=UNPHASED_SAMPLES
         ),
