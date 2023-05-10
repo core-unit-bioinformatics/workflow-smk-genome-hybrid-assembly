@@ -78,3 +78,26 @@ def increase_process_ont_resources(attempt):
         pop_resources = "--pop-run 1 96 48"
     return pop_resources
 
+
+def increase_layout_contigs_resources(attempt):
+    """Singular cases where creating the layout
+    is OOM killed. Use the same strategy
+    as above and increase the initial job
+    resources if Verkko is restarted
+    (NB: Verkko also restarts its jobs)
+
+    In Verkko v1.3.1, this pertains to...
+    ... option string `--lay-run`
+    and affects settings ...
+    #  process_ont_paths
+    lay_n_cpus=1
+    lay_mem_gb=32
+    lay_time_h=24
+    ... for rule `6-layoutContigs.sm::layoutContigs`
+    """
+    lay_resources = ""
+    if int(attempt) > 1:
+        # this is CPU - MEM_GB - TIME_HRS
+        lay_resources = "--lay-run 1 64 36"
+    return lay_resources
+

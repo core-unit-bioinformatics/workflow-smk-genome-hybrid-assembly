@@ -28,6 +28,7 @@ rule verkko_trio_samples:
     resources:
         mbg_rsrc=lambda wildcards, attempt: increase_mbg_resources(attempt),
         pop_rsrc=lambda wildcards, attempt: increase_process_ont_resources(attempt),
+        lay_rsrc=lambda wildcards, attempt: increase_layout_contigs_resources(attempt),
     params:
         dryrun="--dry-run" if VERKKO_DRY_RUN else "",
         check=lambda wildcards, output: "" if VERKKO_DRY_RUN else f" && touch {output.done}",
@@ -47,6 +48,7 @@ rule verkko_trio_samples:
             "-d {params.wd} "
             "{resources.mbg_rsrc} "
             "{resources.pop_rsrc} "
+            "{resources.lay_rsrc} "
             "--hap-kmers {input.hap1_db} {input.hap2_db} trio "
             "--snakeopts \"--profile $PWD/{input.profile} {params.dryrun}\" "
             "&> {log} {params.check}"
@@ -80,6 +82,7 @@ rule verkko_unphased_samples:
     resources:
         mbg_rsrc=lambda wildcards, attempt: increase_mbg_resources(attempt),
         pop_rsrc=lambda wildcards, attempt: increase_process_ont_resources(attempt),
+        lay_rsrc=lambda wildcards, attempt: increase_layout_contigs_resources(attempt),
     params:
         dryrun = "--dry-run" if VERKKO_DRY_RUN else "",
         check = lambda wildcards, output: "" if VERKKO_DRY_RUN else f" && touch {output.done}",
@@ -99,6 +102,7 @@ rule verkko_unphased_samples:
             "-d {params.wd} "
             "{resources.mbg_rsrc} "
             "{resources.pop_rsrc} "
+            "{resources.lay_rsrc} "
             "--snakeopts \"--profile $PWD/{input.profile} {params.dryrun}\" "
             "&> {log} {params.check}"
 
