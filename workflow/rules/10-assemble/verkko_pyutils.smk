@@ -98,6 +98,6 @@ def increase_layout_contigs_resources(attempt):
     lay_resources = ""
     if int(attempt) > 1:
         # this is CPU - MEM_GB - TIME_HRS
-        lay_resources = "--lay-run 1 64 36"
+        lay_resources = "--lay-run 1 96 24"
     return lay_resources
 
