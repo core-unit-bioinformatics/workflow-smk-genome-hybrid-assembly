@@ -34,7 +34,8 @@ rule compute_input_stats:
         "--summary-length-thresholds {params.report_seq_lens} "
         "--output-statistics {output.stats} "
         "--output-summary {output.summary} "
-        "--output-timings {output.timings}"
+        "--output-timings {output.timings} "
+        "--input-files {input.reads}"
 
 
 rule compute_all_input_stats:
