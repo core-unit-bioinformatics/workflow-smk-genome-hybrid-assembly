@@ -8,6 +8,7 @@ to "commons/00_commons.smk"
 include: "00-prepare/settings.smk"
 include: "00-prepare/sample_table.smk"
 include: "00-prepare/verkko.smk"
+include: "00-prepare/input_stats.smk"
 
 include: "10-assemble/verkko_pyutils.smk"
 include: "10-assemble/verkko.smk"
