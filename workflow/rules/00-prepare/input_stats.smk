@@ -20,7 +20,7 @@ rule compute_input_stats:
         DIR_ENVS.joinpath("pystats.yaml")
     threads: CPU_MEDIUM
     resources:
-        mem_mb=lambda wildcards, attempt: 24576 * attempt,
+        mem_mb=lambda wildcards, attempt: 65536 + 32768 * attempt,
         time_hrs=lambda wildcards, attempt: attempt**attempt
     params:
         script=find_script("seqstats"),
