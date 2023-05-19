@@ -225,7 +225,7 @@ def count_homopolymer_runs(alphabet, sequence, seq_stats):
             run_lengths[nuc].append(cov)
             total_cov += cov
             distinct += 1
-    seq_stats["hpr_cov"] = cov
+    seq_stats["hpr_cov"] = total_cov
     seq_stats["hpr_length"] = len(sequence) - total_cov + distinct
     for nuc, nuc_hp_rl in run_lengths.items():
         seq_stats[f"hpr{nuc}_rl_max"] = max(nuc_hp_rl)
