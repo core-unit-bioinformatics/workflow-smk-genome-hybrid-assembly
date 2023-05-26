@@ -32,6 +32,7 @@ rule compute_input_stats:
     shell:
         "{params.script} --cores {threads} "
         "--summary-length-thresholds {params.report_seq_lens} "
+        "--temp-records 100000 "
         "--output-statistics {output.stats} "
         "--output-summary {output.summary} "
         "--output-timings {output.timings} "

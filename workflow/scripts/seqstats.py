@@ -5,9 +5,10 @@ import functools
 import hashlib as hl
 import itertools
 import multiprocessing as mp
+import os
 import pathlib as pl
 import re
-import sys
+import tempfile
 import time
 
 import dnaio
@@ -18,7 +19,7 @@ __prog__ = "seqstats.py"
 __version__ = "0.0.1"
 
 
-def parse_command_line():
+def parse_command_line(cache_tempfile):
 
     parser = argp.ArgumentParser(prog=f"{__prog__} v{__version__}")
 
@@ -132,6 +133,26 @@ def parse_command_line():
         type=int,
         default=3000000000,
         dest="coverage_ref_size"
+    )
+
+    parser.add_argument(
+        "--temp-file",
+        "-tf",
+        type=lambda x: pl.Path(x).resolve(),
+        default=cache_tempfile,
+        dest="temp_file",
+        help=f"Path to cache temp file to store records. Default: {cache_tempfile}"
+    )
+
+    parser.add_argument(
+        "--temp-records",
+        "-tr",
+        type=int,
+        default=100000,
+        dest="temp_records",
+        help=("Number of records to keep in memory before "
+              "dumping to cache temp file. "
+              "Default: 100000")
     )
 
     parser.add_argument(
@@ -357,7 +378,7 @@ def compute_length_statistics(seq_source, seq_lengths, threshold, ref_size):
         )
 
         length_stats.append(
-            (seq_source, f"cov_xfold_at_{readable_refsize}",
+            (seq_source, f"cov_xfold_grt_{readable_threshold}_at_{readable_refsize}",
              round(total_length / ref_size, 1))
         )
 
@@ -456,9 +477,9 @@ def write_output_file(file_path, data, dump_index):
     return
 
 
-def main():
+def main(cache_tempfile):
 
-    args = parse_command_line()
+    args = parse_command_line(cache_tempfile)
 
     all_inputs = args.input_files
     if isinstance(all_inputs, list) and len(all_inputs) == 1:
@@ -476,9 +497,13 @@ def main():
         processors
     )
 
+    args.temp_file.parent.mkdir(exist_ok=True, parents=True)
+    cache_file_mode = "w"
+
     stats = []
     index_records = []
     proc_timings = []
+    batch_number = 0
     with mp.Pool(args.cores) as pool:
         for input_file in sorted(all_inputs):
             file_name = input_file.name
@@ -488,14 +513,38 @@ def main():
                     index_records.append((seq_name, file_name, seq_hash))
                     stats.append(seq_stats)
                     proc_timings.append(proc_time)
+                    if len(stats) > args.temp_records:
+
+                        proc_timings = pd.DataFrame.from_records(proc_timings, index="seq_name")
+                        mindex = pd.MultiIndex.from_tuples(index_records, names=["seq_name", "seq_source", "seq_hash"])
+                        stats = pd.DataFrame.from_records(stats, index=mindex)
+                        stats.fillna(0, inplace=True)
+
+                        with pd.HDFStore(cache_tempfile, cache_file_mode, complevel=9, complib="blosc") as hdf:
+                            hdf.put(f"batch{batch_number}/stats", stats, format="fixed")
+                            hdf.put(f"batch{batch_number}/timings", proc_timings, format="fixed")
+
+                        stats = []
+                        index_records = []
+                        proc_timings = []
+                        batch_number += 1
+                        cache_file_mode = "a"
 
     proc_timings = pd.DataFrame.from_records(proc_timings, index="seq_name")
-    write_output_file(args.output_timings, proc_timings, True)
-
     mindex = pd.MultiIndex.from_tuples(index_records, names=["seq_name", "seq_source", "seq_hash"])
     stats = pd.DataFrame.from_records(stats, index=mindex)
     stats.fillna(0, inplace=True)
-    write_output_file(args.output_statistics, stats, True)
+
+    with pd.HDFStore(cache_tempfile, "r") as hdf:
+        all_stats = [hdf[f"batch{i}/stats"] for i in range(batch_number)]
+        all_stats.append(stats)
+        all_stats = pd.concat(all_stats, ignore_index=False, axis=0)
+        write_output_file(args.output_statistics, stats, True)
+
+        all_timings = [hdf[f"batch{i}/timings"] for i in range(batch_number)]
+        all_timings.append(proc_timings)
+        all_timings = pd.concat(all_timings, ignore_index=False, axis=0)
+        write_output_file(args.output_timings, all_timings, True)
 
     summary = prepare_summary(args, stats, proc_timings["total"].values)
     write_output_file(args.output_summary, summary, False)
@@ -505,4 +554,14 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    tempfile_fobj = tempfile.NamedTemporaryFile(
+        mode="w", delete=False, suffix=".seqstat.cache.h5"
+    )
+    tempfile_fobj.close()
+    tempfile_name = tempfile_fobj.name
+    try:
+        main(tempfile_name)
+        os.unlink(tempfile_name)
+    except Exception:
+        os.unlink(tempfile_name)
+        raise
