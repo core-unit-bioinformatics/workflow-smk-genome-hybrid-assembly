@@ -288,7 +288,7 @@ def get_repeat_motifs(alphabet, motif_length):
 def process_sequence(processors, seq_record):
 
     proc_times = {
-        "seq_name": seq_record.name,
+        "seq_name": seq_record.name.split()[0],
         "seq_length": len(seq_record.sequence)
     }
 
