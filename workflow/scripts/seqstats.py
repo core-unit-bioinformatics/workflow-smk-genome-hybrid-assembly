@@ -113,7 +113,7 @@ def parse_command_line(cache_tempfile):
         "-strl",
         type=int,
         nargs="+",
-        default=[2, 3],
+        default=[2, 3, 4],
         dest="str_motif_lengths",
         help="Specify motif length for STR counting. Default: 2 3 4"
     )
@@ -535,16 +535,20 @@ def main(cache_tempfile):
     stats = pd.DataFrame.from_records(stats, index=mindex)
     stats.fillna(0, inplace=True)
 
-    with pd.HDFStore(cache_tempfile, "r") as hdf:
-        all_stats = [hdf[f"batch{i}/stats"] for i in range(batch_number)]
-        all_stats.append(stats)
-        all_stats = pd.concat(all_stats, ignore_index=False, axis=0)
-        write_output_file(args.output_statistics, stats, True)
+    if cache_file_mode == "a":
 
-        all_timings = [hdf[f"batch{i}/timings"] for i in range(batch_number)]
-        all_timings.append(proc_timings)
-        all_timings = pd.concat(all_timings, ignore_index=False, axis=0)
-        write_output_file(args.output_timings, all_timings, True)
+        with pd.HDFStore(cache_tempfile, "r") as hdf:
+            all_stats = [hdf[f"batch{i}/stats"] for i in range(batch_number)]
+            all_stats.append(stats)
+            stats = pd.concat(all_stats, ignore_index=False, axis=0)
+
+            all_timings = [hdf[f"batch{i}/timings"] for i in range(batch_number)]
+            all_timings.append(proc_timings)
+            proc_timings = pd.concat(all_timings, ignore_index=False, axis=0)
+
+    write_output_file(args.output_statistics, stats, True)
+
+    write_output_file(args.output_timings, proc_timings, True)
 
     summary = prepare_summary(args, stats, proc_timings["total"].values)
     write_output_file(args.output_summary, summary, False)
