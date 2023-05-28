@@ -8,10 +8,7 @@ rule compute_input_stats:
         ),
         summary = DIR_RES.joinpath(
             "statistics", "input", "{sample}_{read_type}.summary.tsv"
-        ),
-        timings = DIR_PROC.joinpath(
-            "statistics", "input", "{sample}_{read_type}.proc-timings.tsv.gz"
-        ),
+        )
     benchmark:
         DIR_RSRC.joinpath("statistics", "input", "{sample}_{read_type}.stats.rsrc")
     wildcard_constraints:
@@ -20,13 +17,17 @@ rule compute_input_stats:
         DIR_ENVS.joinpath("pystats.yaml")
     threads: CPU_MEDIUM
     resources:
-        mem_mb=lambda wildcards, attempt: 16384 * attempt,
-        time_hrs=lambda wildcards, attempt: attempt**attempt
+        mem_mb=lambda wildcards, attempt: 32768 * attempt,
+        time_hrs=lambda wildcards, attempt: 11*attempt
     params:
         script=find_script("seqstats"),
         report_seq_lens=lambda wildcards: (
             " 10000 15000 20000 50000 " if wildcards.read_type == "hifi"
             else " 25000 50000 100000 500000 1000000 "
+        ),
+        timings_out=lambda wildcards, output: (
+            f" --output-timings {output.stats.with_suffix('.proc-timings.tsv.gz')} "
+            if "NA" in wildcards.sample else " "
         ),
         acc_res=lambda wildcards, output: register_result(output.stats, output.summary)
     shell:
@@ -35,7 +36,7 @@ rule compute_input_stats:
         "--temp-records 100000 "
         "--output-statistics {output.stats} "
         "--output-summary {output.summary} "
-        "--output-timings {output.timings} "
+        "{params.timings_out}"
         "--input-files {input.reads}"
 
 
