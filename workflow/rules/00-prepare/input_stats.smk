@@ -26,7 +26,7 @@ rule compute_input_stats:
             else " 25000 50000 100000 500000 1000000 "
         ),
         timings_out=lambda wildcards, output: (
-            f" --output-timings {output.stats.replace('summary.tsv', 'proc-timings.tsv.gz')} "
+            f" --output-timings {output.summary.replace('summary.tsv', 'proc-timings.tsv.gz')} "
             if "NA" in wildcards.sample else " "
         ),
         acc_res=lambda wildcards, output: register_result(output.stats, output.summary)
