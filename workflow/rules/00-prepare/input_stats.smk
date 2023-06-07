@@ -17,8 +17,8 @@ rule compute_input_stats:
         DIR_ENVS.joinpath("pystats.yaml")
     threads: CPU_MEDIUM
     resources:
-        mem_mb=lambda wildcards, attempt: 32768 * attempt,
-        time_hrs=lambda wildcards, attempt: 11*attempt
+        mem_mb=lambda wildcards, attempt: 16384 * attempt,
+        time_hrs=lambda wildcards, attempt: 71*attempt
     params:
         script=find_script("seqstats"),
         report_seq_lens=lambda wildcards: (
@@ -34,6 +34,7 @@ rule compute_input_stats:
         "{params.script} --cores {threads} "
         "--summary-length-thresholds {params.report_seq_lens} "
         "--temp-records 100000 "
+        "--str-motif-lengths 2 3 "
         "--output-statistics {output.stats} "
         "--output-summary {output.summary} "
         "{params.timings_out}"
