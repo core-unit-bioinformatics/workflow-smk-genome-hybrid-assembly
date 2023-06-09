@@ -16,6 +16,76 @@ rule collect_verkko_output_files:
             "--delete-logs --sample {wildcards.sample} --output {output.file_collection}"
 
 
+rule compute_verkko_assembly_stats:
+    input:
+        file_collection = DIR_PROC.joinpath("assemblies/verkko/{sample}.{phasing_state}.output.json")
+    output:
+        stats = DIR_RES.joinpath(
+            "statistics", "assemblies", "{sample}.{phasing_state}.verkko-asm.statistics.tsv.gz"
+        ),
+        summary = DIR_RES.joinpath(
+            "statistics", "assemblies", "{sample}.{phasing_state}.verkko-asm.summary.tsv"
+        )
+    benchmark:
+        DIR_RSRC.joinpath("statistics", "assemblies", "{sample}.{phasing_state}.verkko-asm.stats.rsrc")
+    conda:
+        DIR_ENVS.joinpath("pystats.yaml")
+    threads: CPU_MEDIUM
+    resources:
+        mem_mb=lambda wildcards, attempt: 16384 * attempt,
+        time_hrs=lambda wildcards, attempt: 23*attempt
+    params:
+        script=find_script("seqstats"),
+        report_seq_lens = " ".join(map(str, [int(1e5), int(5e5), int(1e6), int(1e7), int(5e7), int(1e8)])),
+        assembly=lambda wildcards, input: get_verkko_output(input.file_collection, "wg_fasta"),
+        acc_res=lambda wildcards, output: register_result(output.stats, output.summary)
+    shell:
+        "{params.script} --cores {threads} "
+        "--summary-length-thresholds {params.report_seq_lens} "
+        "--no-homopolymer-runs "
+        "--no-canonical-sequence "
+        "--temp-records 200 "
+        "--str-motif-lengths 2 "
+        "--output-statistics {output.stats} "
+        "--output-summary {output.summary} "
+        "--input-files {params.assembly}"
+
+
+rule compute_verkko_unassembled_stats:
+    input:
+        file_collection = DIR_PROC.joinpath("assemblies/verkko/{sample}.{phasing_state}.output.json")
+    output:
+        stats = DIR_RES.joinpath(
+            "statistics", "assemblies", "{sample}.{phasing_state}.verkko-disconn.statistics.tsv.gz"
+        ),
+        summary = DIR_RES.joinpath(
+            "statistics", "assemblies", "{sample}.{phasing_state}.verkko-disconn.summary.tsv"
+        )
+    benchmark:
+        DIR_RSRC.joinpath("statistics", "assemblies", "{sample}.{phasing_state}.verkko-disconn.stats.rsrc")
+    conda:
+        DIR_ENVS.joinpath("pystats.yaml")
+    threads: CPU_LOW
+    resources:
+        mem_mb=lambda wildcards, attempt: 8192 * attempt,
+        time_hrs=lambda wildcards, attempt: 11 * attempt
+    params:
+        script=find_script("seqstats"),
+        report_seq_lens = " ".join(map(str, [int(5e4), int(1e5), int(5e5), int(1e6)])),
+        disconn=lambda wildcards, input: get_verkko_output(input.file_collection, "disconnected"),
+        acc_res=lambda wildcards, output: register_result(output.stats, output.summary)
+    shell:
+        "{params.script} --cores {threads} "
+        "--summary-length-thresholds {params.report_seq_lens} "
+        "--no-homopolymer-runs "
+        "--no-canonical-sequence "
+        "--temp-records 200 "
+        "--str-motif-lengths 2 "
+        "--output-statistics {output.stats} "
+        "--output-summary {output.summary} "
+        "--input-files {params.disconn}"
+
+
 localrules: merge_verkko_trio_output
 rule merge_verkko_trio_output:
     input:
@@ -97,4 +167,15 @@ rule get_verkko_unphased_output_files:
                 "assemblies/verkko/{sample}.ps-none.output.json"
             ),
             sample=UNPHASED_SAMPLES
+        ),
+
+
+rule get_verkko_unphased_output_stats:
+    input:
+        summary = expand(
+            DIR_RES.joinpath(
+            "statistics", "assemblies", "{sample}.ps-none.verkko-{vrk_out}.summary.tsv"
+            ),
+            sample=UNPHASED_SAMPLES,
+            vrk_out=["asm", "disconn"]
         ),

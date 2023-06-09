@@ -101,3 +101,30 @@ def increase_layout_contigs_resources(attempt):
         lay_resources = "--lay-run 1 96 24"
     return lay_resources
 
+
+def get_verkko_output(file_collection, which_file, relpath=True):
+
+    _this_func = "10-assemble::verkko_pyutils.smk::get_verkko_output"
+
+    get_path = "rel_path" if relpath else "abs_path"
+
+    if not pathlib.Path(file_collection).is_file():
+        output_file_path = "file-collection-not-yet-created"
+    else:
+        import json
+
+        with open(file_collection, "r") as dump:
+            output_files = json.load(dump)
+            try:
+                output_file_path = output_files[which_file][get_path]
+            except KeyError:
+                err_msg = (
+                    f"\nERROR in {_this_func}\n"
+                    f"Cannot retrieve file '{which_file}' "
+                    "from Verkko output file collection:\n"
+                    f"{file_collection}\n"
+                )
+                logerr(err_msg)
+                raise
+
+    return output_file_path
