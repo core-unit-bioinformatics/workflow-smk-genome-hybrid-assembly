@@ -8,6 +8,7 @@ import multiprocessing as mp
 import os
 import pathlib as pl
 import re
+import sys
 import tempfile
 import time
 
@@ -556,6 +557,8 @@ def main(cache_tempfile):
                         stats.fillna(0, inplace=True)
                         stat_columns = stat_columns.union(set(stats.columns))
 
+                        io_start = time.perf_counter()
+
                         with pd.HDFStore(
                             cache_tempfile,
                             cache_file_mode,
@@ -569,6 +572,11 @@ def main(cache_tempfile):
                                     proc_timings,
                                     format="fixed",
                                 )
+
+                        io_end = time.perf_counter()
+                        io_time = io_end - io_start
+
+                        sys.stderr.write(f"\nI/O time for dumping buffer (batch {batch_number}): {io_time} sec\n")
 
                         stats = []
                         index_records = []
