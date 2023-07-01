@@ -15,10 +15,10 @@ rule compute_input_stats:
         read_type="(hifi|ont)"
     conda:
         DIR_ENVS.joinpath("pystats.yaml")
-    threads: CPU_MEDIUM
+    threads: CPU_HIGH
     resources:
-        mem_mb=lambda wildcards, attempt: 16384 * attempt,
-        time_hrs=lambda wildcards, attempt: 71*attempt
+        mem_mb=lambda wildcards, attempt: 24576 * attempt,
+        time_hrs=lambda wildcards, attempt: 167
     params:
         script=find_script("seqstats"),
         report_seq_lens=lambda wildcards: (
