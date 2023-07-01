@@ -2,7 +2,7 @@ name: verkko
 dependencies:
   - Python=3.9.*
   - pip
-  - mbg=1.0.14
+  - mbg=1.0.15
   - graphaligner=1.0.17
   - mashmap=2.0
   - snakemake=7.18.1
