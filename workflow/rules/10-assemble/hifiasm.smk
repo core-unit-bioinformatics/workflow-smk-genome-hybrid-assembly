@@ -17,7 +17,7 @@ rule hifiasm_unphased_samples:
         sample = CONSTRAINT_UNPHASED_SAMPLES
     threads: CPU_MAX
     resources:
-        mem_mb=lambda wildcards, attempt: (1024 * attempt) * 1024,
+        mem_mb=lambda wildcards, attempt: (864 + 576 * attempt) * 1024,
         time_hrs=lambda wildcards, attempt: 167,
     params:
         acc_in=lambda wildcards, input: register_input(input.hifi, input.nano),
