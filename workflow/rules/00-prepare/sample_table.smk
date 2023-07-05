@@ -9,9 +9,11 @@ SAMPLES = None
 MAP_SAMPLE_TO_INPUT_FILES = None
 
 TRIO_SAMPLES = None
+SSEQ_SAMPLES = None
 UNPHASED_SAMPLES = None
 
 CONSTRAINT_TRIO_SAMPLES = None
+CONSTRAINT_SSEQ_SAMPLES = None
 CONSTRAINT_UNPHASED_SAMPLES = None
 
 
@@ -26,7 +28,7 @@ def process_sample_sheet():
 
     # step 1: each row is a sample,
     # just collect the input files
-    sample_input, trio_samples, unphased_samples = collect_input_files(SAMPLE_SHEET)
+    sample_input, trio_samples, sseq_samples, unphased_samples = collect_input_files(SAMPLE_SHEET)
     all_samples = sorted(sample_input.keys())
     assert len(all_samples) == SAMPLE_SHEET.shape[0]
 
@@ -34,6 +36,8 @@ def process_sample_sheet():
     SAMPLES = all_samples
     global TRIO_SAMPLES
     TRIO_SAMPLES = trio_samples
+    global SSEQ_SAMPLES
+    SSEQ_SAMPLES = sseq_samples
     global UNPHASED_SAMPLES
     UNPHASED_SAMPLES = unphased_samples
 
@@ -42,6 +46,8 @@ def process_sample_sheet():
 
     global CONSTRAINT_TRIO_SAMPLES
     CONSTRAINT_TRIO_SAMPLES = _build_constraint(trio_samples)
+    global CONSTRAINT_SSEQ_SAMPLES
+    CONSTRAINT_SSEQ_SAMPLES = _build_constraint(sseq_samples)
     global CONSTRAINT_UNPHASED_SAMPLES
     CONSTRAINT_UNPHASED_SAMPLES = _build_constraint(unphased_samples)
 
@@ -56,6 +62,7 @@ def collect_input_files(sample_sheet):
     """
     sample_input = collections.defaultdict(dict)
     trio_samples = set()
+    sseq_samples = set()
     unphased_samples = set()
 
     for row in sample_sheet.itertuples():
@@ -63,6 +70,10 @@ def collect_input_files(sample_sheet):
         hifi_input, hifi_hashes = collect_sequence_input(row.hifi)
         ont_input, ont_hashes = collect_sequence_input(row.ont)
         if row.target == "trio":
+            assert hasattr(row, "hap1") and hasattr(row, "hap2"), (
+                f"Trio-phasing a sample requires hap1/hap2 "
+                "columns in sample sheet: {sample}"
+            )
             trio_samples.add(sample)
             hap1_db = row.hap1
             assert hap1_db.endswith("meryl")
@@ -76,6 +87,27 @@ def collect_input_files(sample_sheet):
 
             assert sample_input[sample]["hap1"] != sample_input[sample]["hap2"]
 
+        elif row.target == "sseq":
+            # NB: at the moment, phasing an assembly with
+            # Strand-seq requires to complete the unphased assembly
+            # first, hence the sample is always added to the
+            # unphased_samples set as well. This may need to be
+            # changed if both pipelines can be integrated.
+            unphased_samples.add(sample)
+            sseq_samples.add(sample)
+            assert hasattr(row, "phasing_paths"), (
+                "Strand-seq phasing of sample requires"
+                f"phasing_paths column in sample sheet: {sample}"
+            )
+            phasing_paths_file = pathlib.Path(row.phasing_paths).resolve(strict=True)
+            assert phasing_paths_file.is_file(), (
+                f"Phasing paths entry is not a valid file: {phasing_paths_file}"
+            )
+            assert phasing_paths_file.suffix() == ".gaf", (
+                f"Phasing paths file must be GAF: {phasing_paths_file.name}"
+            )
+            sample_input[sample]["phasing_paths"] = phasing_paths_file
+
         elif row.target == "unphased":
             unphased_samples.add(sample)
         else:
@@ -83,7 +115,7 @@ def collect_input_files(sample_sheet):
         sample_input[sample]["hifi"] = hifi_input
         sample_input[sample]["ont"] = ont_input
 
-    return sample_input, trio_samples, unphased_samples
+    return sample_input, trio_samples, sseq_samples, unphased_samples
 
 
 def _read_input_files_from_fofn(fofn_path):
