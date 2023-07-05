@@ -26,9 +26,12 @@ rule hifiasm_unphased_samples:
     params:
         acc_in=lambda wildcards, input: register_input(input.hifi, input.nano),
         prefix=lambda wildcards, output: pathlib.Path(output.done).with_suffix(".wd").joinpath(wildcards.sample),
+        outdir=lambda wildcards, output: pathlib.Path(output.done).with_suffix(".wd")
     shell:
+        "mkdir -p {params.outdir}"
+            " && "
         "hifiasm -o {params.prefix} -t {threads} "
-            "--ul {input.nano} "
+            "--ul {input.nano} --write-ec "
             "{input.hifi} &> {log}"
             " && "
         "touch {output}"
