@@ -103,7 +103,7 @@ def collect_input_files(sample_sheet):
             assert phasing_paths_file.is_file(), (
                 f"Phasing paths entry is not a valid file: {phasing_paths_file}"
             )
-            assert phasing_paths_file.suffix() == ".gaf", (
+            assert phasing_paths_file.suffix == ".gaf", (
                 f"Phasing paths file must be GAF: {phasing_paths_file.name}"
             )
             sample_input[sample]["phasing_paths"] = phasing_paths_file
