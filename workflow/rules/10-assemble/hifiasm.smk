@@ -1,6 +1,10 @@
 
 rule hifiasm_unphased_samples:
     """
+    2023-07-05
+    Removed options for debugging
+    purposes:
+     --write-paf --write-ec
     """
     input:
         hifi = lambda wildcards: MAP_SAMPLE_TO_INPUT_FILES[wildcards.sample]["hifi"],
@@ -24,7 +28,7 @@ rule hifiasm_unphased_samples:
         prefix=lambda wildcards, output: pathlib.Path(output.done).with_suffix(".wd").joinpath(wildcards.sample),
     shell:
         "hifiasm -o {params.prefix} -t {threads} "
-            "--ul {input.nano} --write-paf --write-ec "
+            "--ul {input.nano} "
             "{input.hifi} &> {log}"
             " && "
         "touch {output}"
