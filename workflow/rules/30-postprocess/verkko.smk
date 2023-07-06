@@ -17,6 +17,8 @@ rule split_verkko_posthoc_phased_fasta:
         check_file = DIR_PROC.joinpath("assemblies/verkko/{sample}.{phasing_state}.ok")
     wildcard_constraints:
         phasing_state = "ps-sseq"
+    resources:
+        mem_mb=lambda wildcards: 4096 * attempt
     run:
         import io
         import os
