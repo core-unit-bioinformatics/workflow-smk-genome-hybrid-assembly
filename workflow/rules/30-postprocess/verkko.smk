@@ -57,8 +57,8 @@ rule split_verkko_posthoc_phased_fasta:
                         dump_fasta_partition(active_partition, partition_buffer, verkko_run_wd)
                         processed_partitions.add(active_partition)
                         partition_buffer = io.StringIO()
+                        active_partition = contig_partition
                     assert contig_partition == active_partition
-                    active_partition = contig_partition
                     partition_buffer.write(line)
                 else:
                     partition_buffer.write(line)
