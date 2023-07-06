@@ -18,7 +18,7 @@ rule split_verkko_posthoc_phased_fasta:
     wildcard_constraints:
         phasing_state = "ps-sseq"
     resources:
-        mem_mb=lambda wildcards, attempt: 4096 * attempt
+        mem_mb=lambda wildcards, attempt: 8192 * attempt
     run:
         import io
         import os
@@ -65,7 +65,7 @@ rule split_verkko_posthoc_phased_fasta:
                     partition_buffer.write(line)
 
         dump_fasta_partition(active_partition, partition_buffer, verkko_run_wd)
-        processed_partitions(active_partition)
+        processed_partitions.add(active_partition)
         assert sorted(processed_partitions) == expected_partitions
 
         with open(output.check_file, "w") as dump:
