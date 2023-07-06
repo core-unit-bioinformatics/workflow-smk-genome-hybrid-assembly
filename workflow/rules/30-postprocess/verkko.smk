@@ -18,7 +18,7 @@ rule split_verkko_posthoc_phased_fasta:
     wildcard_constraints:
         phasing_state = "ps-sseq"
     resources:
-        mem_mb=lambda wildcards: 4096 * attempt
+        mem_mb=lambda wildcards, attempt: 4096 * attempt
     run:
         import io
         import os
