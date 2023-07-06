@@ -110,8 +110,8 @@ rule compute_verkko_assembly_stats:
         DIR_ENVS.joinpath("pystats.yaml")
     threads: CPU_HIGH
     resources:
-        mem_mb=lambda wildcards, attempt: 24576 * attempt,
-        time_hrs=lambda wildcards, attempt: 47 * attempt
+        mem_mb=lambda wildcards, attempt: 8192 * attempt,
+        time_hrs=lambda wildcards, attempt: attempt * attempt,
     params:
         script=find_script("seqstats"),
         report_seq_lens = " ".join(map(str, [int(1e5), int(5e5), int(1e6), int(1e7), int(5e7), int(1e8)])),
@@ -149,8 +149,8 @@ rule compute_verkko_disconn_unassgn_stats:
         DIR_ENVS.joinpath("pystats.yaml")
     threads: CPU_MEDIUM
     resources:
-        mem_mb=lambda wildcards, attempt: 16384 * attempt,
-        time_hrs=lambda wildcards, attempt: 23 * attempt
+        mem_mb=lambda wildcards, attempt: 2048 * attempt,
+        time_hrs=lambda wildcards, attempt: attempt * attempt
     params:
         script=find_script("seqstats"),
         report_seq_lens = " ".join(map(str, [int(5e4), int(1e5), int(5e5), int(1e6)])),
