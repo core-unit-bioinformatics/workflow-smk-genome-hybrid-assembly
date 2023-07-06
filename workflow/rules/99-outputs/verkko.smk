@@ -31,8 +31,8 @@ if RUN_VERKKO_UNPHASED_SAMPLES:
 
 if RUN_VERKKO_SSEQ_SAMPLES:
     VERKKO_OUTPUT.extend(
-        rules.get_verkko_unphased_output_files.input.file_collect
+        rules.get_verkko_sseq_phased_output_files.input.file_collect
     )
     VERKKO_OUTPUT.extend(
-        rules.get_verkko_sseq_output_stats.input.summary
+        rules.get_verkko_sseq_phased_output_stats.input.summary
     )
