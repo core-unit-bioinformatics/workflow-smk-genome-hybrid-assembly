@@ -66,7 +66,9 @@ rule split_verkko_posthoc_phased_fasta:
 
         dump_fasta_partition(active_partition, partition_buffer, verkko_run_wd)
         processed_partitions.add(active_partition)
-        assert sorted(processed_partitions) == expected_partitions
+        assert sorted(processed_partitions) == expected_partitions, (
+            f"Partitions: processed {processed_partitions} - expected {expected_partitions}"
+        )
 
         with open(output.check_file, "w") as dump:
             _ = dump.write(f"Processed contigs: {num_contigs}\n")
