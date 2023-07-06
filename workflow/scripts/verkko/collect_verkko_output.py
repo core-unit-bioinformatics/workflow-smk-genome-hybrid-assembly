@@ -21,7 +21,7 @@ KNOWN_OUTPUT_FILES = [
         "unassigned.fasta",
         "unassigned_fasta",
         "Unassigned assembly contigs (unphased contigs)."
-    )
+    ),
     (
         "disconnected.fasta",
         "disconnected_fasta",
