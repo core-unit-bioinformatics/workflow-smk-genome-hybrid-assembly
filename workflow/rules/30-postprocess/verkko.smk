@@ -98,7 +98,7 @@ rule compute_verkko_assembly_stats:
             "statistics", "assemblies", "{sample}.{phasing_state}.verkko-asm-{asmtype}.summary.tsv"
         )
     benchmark:
-        DIR_RSRC.joinpath("statistics", "assemblies", "{sample}.{phasing_state}.verkko-asm.stats.rsrc")
+        DIR_RSRC.joinpath("statistics", "assemblies", "{sample}.{phasing_state}.verkko-asm-{asmtype}.stats.rsrc")
     wildcard_constraints:
         asmtype = "(wg|hap1|hap2)"
     conda:
