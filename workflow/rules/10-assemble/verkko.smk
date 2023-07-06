@@ -125,7 +125,7 @@ rule verkko_strandseq_samples:
         paths = lambda wildcards: MAP_SAMPLE_TO_INPUT_FILES[wildcards.sample]["phasing_paths"],
         profile = ancient(config["verkko_smk_profile"]),
     output:
-        done = DIR_PROC.joinpath("assemblies/verkko/{sample}.ps-sseq.ok")
+        done = DIR_PROC.joinpath("assemblies/verkko/{sample}.ps-sseq.wait")
     log:
         DIR_LOG.joinpath("assemblies/verkko/{sample}.ps-sseq.log")
     benchmark:

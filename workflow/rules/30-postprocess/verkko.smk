@@ -1,4 +1,75 @@
 
+rule split_verkko_posthoc_phased_fasta:
+    """
+    This is a temporary rule to deal with
+    the issue that Verkko does not split
+    the main fasta into hap1/hap2 and
+    unassigned if Verkko is restarted
+    with the --paths argument.
+    This should be fixed in some future
+    release of Verkko.
+
+    See gh#170
+    """
+    input:
+        wait_file = DIR_PROC.joinpath("assemblies/verkko/{sample}.{phasing_state}.wait")
+    output:
+        check_file = DIR_PROC.joinpath("assemblies/verkko/{sample}.{phasing_state}.ok")
+    wildcard_constraints:
+        phasing_state = "ps-sseq"
+    run:
+        import io
+        import os
+        import pathlib as pl
+
+        def is_empty(file_path):
+            return os.stat(file_path).st_size == 0
+
+        def dump_fasta_partition(part_name, part_seq_buffer, verkko_wd):
+            part_file = verkko_wd.joinpath(f"assembly.{part_name}.fasta")
+            assert part_file.is_file()
+            assert is_empty(part_file)
+            with open(part_file, "w") as fasta:
+                _ = fasta.write(part_seq_buffer.getvalue())
+            return
+
+        verkko_run_wd = pl.Path(input.wait_file).with_suffix(".wd")
+        assert verkko_run_wd.is_dir()
+
+        main_assembly_file = verkko_run_wd.joinpath("assembly.fasta")
+        assert main_assembly_file.is_file()
+        assert not is_empty(main_assembly_file)
+
+        expected_partitions = ["haplotype1", "haplotype2", "unassigned"]
+        processed_partitions = set()
+        active_partition = None
+        partition_buffer = io.StringIO()
+        num_contigs = 0
+        with open(main_assembly_file, "r") as fasta:
+            for line in fasta:
+                if line.startswith(">"):
+                    contig_partition = line.strip()[1:].split("-")[0]
+                    num_contigs += 1
+                    assert contig_partition in expected_partitions
+                    if processed_partitions and contig_partition not in processed_partitions:
+                        dump_fasta_partition(active_partition, partition_buffer, verkko_run_wd)
+                        processed_partitions.add(active_partition)
+                        partition_buffer = io.StringIO()
+                    assert contig_partition == active_partition
+                    active_partition = contig_partition
+                    partition_buffer.write(line)
+                else:
+                    partition_buffer.write(line)
+
+        dump_fasta_partition(active_partition, partition_buffer, verkko_run_wd)
+        processed_partitions(active_partition)
+        assert sorted(processed_partitions) == expected_partitions
+
+        with open(output.check_file, "w") as dump:
+            _ = dump.write(f"Processed contigs: {num_contigs}\n")
+    # END OF RUN BLOCK
+
+
 localrules: collect_verkko_output_files
 rule collect_verkko_output_files:
     input:
@@ -21,58 +92,66 @@ rule compute_verkko_assembly_stats:
         file_collection = DIR_PROC.joinpath("assemblies/verkko/{sample}.{phasing_state}.output.json")
     output:
         stats = DIR_RES.joinpath(
-            "statistics", "assemblies", "{sample}.{phasing_state}.verkko-asm.statistics.tsv.gz"
+            "statistics", "assemblies", "{sample}.{phasing_state}.verkko-asm-{asmtype}.statistics.tsv.gz"
         ),
         summary = DIR_RES.joinpath(
-            "statistics", "assemblies", "{sample}.{phasing_state}.verkko-asm.summary.tsv"
+            "statistics", "assemblies", "{sample}.{phasing_state}.verkko-asm-{asmtype}.summary.tsv"
         )
     benchmark:
         DIR_RSRC.joinpath("statistics", "assemblies", "{sample}.{phasing_state}.verkko-asm.stats.rsrc")
+    wildcard_constraints:
+        asmtype = "(wg|hap1|hap2)"
     conda:
         DIR_ENVS.joinpath("pystats.yaml")
-    threads: CPU_MEDIUM
+    threads: CPU_HIGH
     resources:
-        mem_mb=lambda wildcards, attempt: 16384 * attempt,
-        time_hrs=lambda wildcards, attempt: 23*attempt
+        mem_mb=lambda wildcards, attempt: 24576 * attempt,
+        time_hrs=lambda wildcards, attempt: 47 * attempt
     params:
         script=find_script("seqstats"),
         report_seq_lens = " ".join(map(str, [int(1e5), int(5e5), int(1e6), int(1e7), int(5e7), int(1e8)])),
-        assembly=lambda wildcards, input: get_verkko_output(input.file_collection, "wg_fasta"),
+        assembly=lambda wildcards, input: get_verkko_output(
+            input.file_collection, f"{wildcards.asmtype}_fasta"
+        ),
         acc_res=lambda wildcards, output: register_result(output.stats, output.summary)
     shell:
         "{params.script} --cores {threads} "
         "--summary-length-thresholds {params.report_seq_lens} "
         "--no-homopolymer-runs "
         "--no-canonical-sequence "
-        "--temp-records 200 "
-        "--str-motif-lengths 2 "
+        "--temp-records 100 "
+        "--str-motif-lengths 2 3 "
         "--output-statistics {output.stats} "
         "--output-summary {output.summary} "
         "--input-files {params.assembly}"
 
 
-rule compute_verkko_unassembled_stats:
+rule compute_verkko_disconn_unassgn_stats:
     input:
         file_collection = DIR_PROC.joinpath("assemblies/verkko/{sample}.{phasing_state}.output.json")
     output:
         stats = DIR_RES.joinpath(
-            "statistics", "assemblies", "{sample}.{phasing_state}.verkko-disconn.statistics.tsv.gz"
+            "statistics", "assemblies", "{sample}.{phasing_state}.verkko-{asmtype}.statistics.tsv.gz"
         ),
         summary = DIR_RES.joinpath(
-            "statistics", "assemblies", "{sample}.{phasing_state}.verkko-disconn.summary.tsv"
+            "statistics", "assemblies", "{sample}.{phasing_state}.verkko-{asmtype}.summary.tsv"
         )
     benchmark:
-        DIR_RSRC.joinpath("statistics", "assemblies", "{sample}.{phasing_state}.verkko-disconn.stats.rsrc")
+        DIR_RSRC.joinpath("statistics", "assemblies", "{sample}.{phasing_state}.verkko-{asmtype}.stats.rsrc")
+    wildcard_constraints:
+        asmtype = ("disconnected|unassigned")
     conda:
         DIR_ENVS.joinpath("pystats.yaml")
-    threads: CPU_LOW
+    threads: CPU_MEDIUM
     resources:
-        mem_mb=lambda wildcards, attempt: 8192 * attempt,
-        time_hrs=lambda wildcards, attempt: 11 * attempt
+        mem_mb=lambda wildcards, attempt: 16384 * attempt,
+        time_hrs=lambda wildcards, attempt: 23 * attempt
     params:
         script=find_script("seqstats"),
         report_seq_lens = " ".join(map(str, [int(5e4), int(1e5), int(5e5), int(1e6)])),
-        disconn=lambda wildcards, input: get_verkko_output(input.file_collection, "disconnected"),
+        disconn=lambda wildcards, input: get_verkko_output(
+            input.file_collection, f"{wildcards.asmtype}_fasta"
+        ),
         acc_res=lambda wildcards, output: register_result(output.stats, output.summary)
     shell:
         "{params.script} --cores {threads} "
@@ -80,7 +159,7 @@ rule compute_verkko_unassembled_stats:
         "--no-homopolymer-runs "
         "--no-canonical-sequence "
         "--temp-records 200 "
-        "--str-motif-lengths 2 "
+        "--str-motif-lengths 2 3 "
         "--output-statistics {output.stats} "
         "--output-summary {output.summary} "
         "--input-files {params.disconn}"
@@ -170,6 +249,16 @@ rule get_verkko_unphased_output_files:
         ),
 
 
+rule get_verkko_sseq_phased_output_files:
+    input:
+        file_collect = expand(
+            DIR_PROC.joinpath(
+                "assemblies/verkko/{sample}.ps-sseq.output.json"
+            ),
+            sample=SSEQ_SAMPLES
+        ),
+
+
 rule get_verkko_unphased_output_stats:
     input:
         summary = expand(
@@ -177,5 +266,16 @@ rule get_verkko_unphased_output_stats:
             "statistics", "assemblies", "{sample}.ps-none.verkko-{vrk_out}.summary.tsv"
             ),
             sample=UNPHASED_SAMPLES,
-            vrk_out=["asm", "disconn"]
+            vrk_out=["asm-wg", "disconnected"]
+        ),
+
+
+rule get_verkko_sseq_phased_output_stats:
+    input:
+        summary = expand(
+            DIR_RES.joinpath(
+            "statistics", "assemblies", "{sample}.ps-sseq.verkko-{vrk_out}.summary.tsv"
+            ),
+            sample=SSEQ_SAMPLES,
+            vrk_out=["asm-wg", "asm-hap1", "asm-hap2", "disconnected", "unassigned"]
         ),

@@ -8,8 +8,23 @@ import shutil
 
 KNOWN_OUTPUT_FILES = [
     (
+        "haplotype1.fasta",
+        "hap1_fasta",
+        "Haplotype1 assembly."
+    ),
+    (
+        "haplotype2.fasta",
+        "hap2_fasta",
+        "Haplotype2 assembly."
+    ),
+    (
+        "unassigned.fasta",
+        "unassigned_fasta",
+        "Unassigned assembly contigs (unphased contigs)."
+    )
+    (
         "disconnected.fasta",
-        "disconnected",
+        "disconnected_fasta",
         "Short contigs not connected to larger components, likely garbage.",
     ),
     ("ebv.exemplar.fasta", "ebv_repr", "Representative EBV sequence."),
