@@ -118,6 +118,9 @@ def main():
         }
         file_collection[file_key] = file_info
 
+    if "wg_fasta" not in file_collection:
+        raise RuntimeError(f"Incomplete Verkko run detected: {args.work_dir}")
+
     args.output.parent.mkdir(parents=True, exist_ok=True)
     with open(args.output, "w") as dump:
         json.dump(file_collection, dump, ensure_ascii=True, indent=2)
