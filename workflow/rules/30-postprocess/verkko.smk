@@ -144,7 +144,7 @@ rule compute_verkko_disconn_unassgn_stats:
     benchmark:
         DIR_RSRC.joinpath("statistics", "assemblies", "{sample}.{phasing_state}.verkko-{asmtype}.stats.rsrc")
     wildcard_constraints:
-        asmtype = ("disconnected|unassigned")
+        asmtype = ("disconnected|unassigned|rdna|ebv")
     conda:
         DIR_ENVS.joinpath("pystats.yaml")
     threads: CPU_MEDIUM
@@ -271,7 +271,7 @@ rule get_verkko_unphased_output_stats:
             "statistics", "assemblies", "{sample}.ps-none.verkko-{vrk_out}.summary.tsv"
             ),
             sample=UNPHASED_SAMPLES,
-            vrk_out=["asm-wg", "disconnected"]
+            vrk_out=["asm-wg", "disconnected", "rdna"]
         ),
 
 
@@ -282,5 +282,5 @@ rule get_verkko_sseq_phased_output_stats:
             "statistics", "assemblies", "{sample}.ps-sseq.verkko-{vrk_out}.summary.tsv"
             ),
             sample=SSEQ_SAMPLES,
-            vrk_out=["asm-wg", "asm-hap1", "asm-hap2", "disconnected", "unassigned"]
+            vrk_out=["asm-wg", "asm-hap1", "asm-hap2", "disconnected", "unassigned", "rdna"]
         ),

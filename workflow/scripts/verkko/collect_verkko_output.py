@@ -28,7 +28,7 @@ KNOWN_OUTPUT_FILES = [
         "Short contigs not connected to larger components, likely garbage.",
     ),
     ("ebv.exemplar.fasta", "ebv_repr", "Representative EBV sequence."),
-    ("ebv.fasta", "ebv_all", "All sequences identified as EBV."),
+    ("ebv.fasta", "ebv_fasta", "All sequences identified as EBV."),
     ("fasta", "wg_fasta", "Whole-genome assembly."),
     ("hifi-coverage.csv", "hifi_cov", "HiFi coverage estimates on unitig level."),
     (
@@ -47,10 +47,10 @@ KNOWN_OUTPUT_FILES = [
         "Whole-genome assembly graph with sequences in HPC space",
     ),
     ("mito.exemplar.fasta", "mito_repr", "Representative mitochondrial sequence."),
-    ("mito.fasta", "mito_all", "All sequences identified as mitochondrial."),
+    ("mito.fasta", "mito_fasta", "All sequences identified as mitochondrial."),
     ("ont-coverage.csv", "ont_cov", "ONT coverage estimates on unitig level."),
     ("rdna.exemplar.fasta", "rdna_repr", "Representative rDNA sequence."),
-    ("rdna.fasta", "rdna_all", "All sequences identified as rDNA."),
+    ("rdna.fasta", "rdna_fasta", "All sequences identified as rDNA."),
     ("scfmap", "scf_map", "Scaffold mapping."),
 ]
 
