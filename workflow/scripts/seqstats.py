@@ -586,47 +586,60 @@ def main(cache_tempfile):
 
     if save_proc_timings:
         proc_timings = pd.DataFrame.from_records(proc_timings, index="seq_name")
-    mindex = pd.MultiIndex.from_tuples(
-        index_records, names=["seq_name", "seq_source", "seq_hash"]
-    )
-    stats = pd.DataFrame.from_records(stats, index=mindex)
-    stats.fillna(0, inplace=True)
-    stat_columns = stat_columns.union(set(stats.columns))
 
-    load_cached_data = cache_file_mode == "a"
+    if not stats:
+        stats = pd.DataFrame(
+            columns=["seq_name", "seq_source", "seq_hash", "seq_length"]
+        )
+        if args.output_statistics is not None:
+            args.output_statistics.parent.mkdir(exist_ok=True, parents=True)
+            stats.to_csv(args.output_statistics, sep="\t", header=True, index=False)
 
-    stats = write_output_file(
-        args.output_statistics,
-        stats,
-        stat_columns,
-        cache_tempfile,
-        "stats",
-        batch_number,
-        load_cached_data,
-        "seq_length",
-        True,
-    )
+        sys.stderr.write(f"\nEmpty input file(s)\n")
 
-    if save_proc_timings:
-        proc_timings = write_output_file(
-            args.output_timings,
-            proc_timings,
-            proc_timings.columns,
+    else:
+
+        mindex = pd.MultiIndex.from_tuples(
+            index_records, names=["seq_name", "seq_source", "seq_hash"]
+        )
+        stats = pd.DataFrame.from_records(stats, index=mindex)
+        stats.fillna(0, inplace=True)
+        stat_columns = stat_columns.union(set(stats.columns))
+
+        load_cached_data = cache_file_mode == "a"
+
+        stats = write_output_file(
+            args.output_statistics,
+            stats,
+            stat_columns,
             cache_tempfile,
-            "timings",
+            "stats",
             batch_number,
             load_cached_data,
-            "total",
+            "seq_length",
             True,
         )
 
-    if save_proc_timings:
-        summary = prepare_summary(args, stats, proc_timings["total"].values)
-    else:
-        summary = prepare_summary(args, stats, None)
-    if args.output_summary is not None:
-        args.output_summary.parent.mkdir(exist_ok=True, parents=True)
-        summary.to_csv(args.output_summary, sep="\t", header=True, index=False)
+        if save_proc_timings:
+            proc_timings = write_output_file(
+                args.output_timings,
+                proc_timings,
+                proc_timings.columns,
+                cache_tempfile,
+                "timings",
+                batch_number,
+                load_cached_data,
+                "total",
+                True,
+            )
+
+        if save_proc_timings:
+            summary = prepare_summary(args, stats, proc_timings["total"].values)
+        else:
+            summary = prepare_summary(args, stats, None)
+        if args.output_summary is not None:
+            args.output_summary.parent.mkdir(exist_ok=True, parents=True)
+            summary.to_csv(args.output_summary, sep="\t", header=True, index=False)
 
     return 0
 
