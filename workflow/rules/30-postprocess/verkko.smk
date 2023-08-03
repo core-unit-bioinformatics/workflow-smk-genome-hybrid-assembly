@@ -244,7 +244,7 @@ rule copy_verkko_exemplar_sequences:
         "samtools faidx {output.ex_seq}"
 
 
-rule run_verkko_sseq_samples:
+rule postprocess_verkko_sseq_samples:
     input:
         exemplars = expand(
             rules.copy_verkko_exemplar_sequences.output.ex_seq,
