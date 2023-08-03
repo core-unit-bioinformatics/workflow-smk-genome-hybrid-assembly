@@ -125,7 +125,7 @@ def parse_command_line(cache_tempfile):
         type=int,
         nargs="+",
         dest="length_thresholds",
-        default=[20000, 50000, 100000],
+        default=[int(1e4), int(1e5), int(1e6)],
     )
 
     parser.add_argument(
