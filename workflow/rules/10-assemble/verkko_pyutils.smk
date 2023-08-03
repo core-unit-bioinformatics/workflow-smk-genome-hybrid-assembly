@@ -128,3 +128,17 @@ def get_verkko_output(file_collection, which_file, relpath=True):
                 raise
 
     return output_file_path
+
+
+def get_verkko_asm_units(phasing_state):
+
+    scraps = ["disconnected", "rdna", "ebv", "mito"]
+
+    if phasing_state in ["ps-sseq", "sseq"]:
+        asm_units = ["hap1", "hap2", "unassigned"] + scraps
+    elif phasing_state in ["ps-none", "none"]:
+        asm_units = ["wg"] + scraps
+    else:
+        raise ValueError(f"Unknown phasing state: {phasing_state}")
+
+    return asm_units

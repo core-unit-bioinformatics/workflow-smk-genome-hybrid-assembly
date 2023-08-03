@@ -123,12 +123,12 @@ rule compute_verkko_assembled_sequence_id:
             "{sample}.{phasing_state}.verkko-asm-{asmtype}.statistics.tsv.gz"
         ),
     wildcard_constraints:
-        asmtype = "(hap1|hap2|unassigned|disconnected|rdna|ebv|mito)"
+        asmtype = "(hap1|hap2|unassigned|disconnected|rdna|ebv|mito|wg)"
     conda:
         DIR_ENVS.joinpath("pyseq.yaml")
     threads: CPU_LOW
     resources:
-        mem_mb=lambda wildcards, attempt: 2048 * attempt,
+        mem_mb=lambda wildcards, attempt: 4096 * attempt,
         time_hrs=lambda wildcards, attempt: attempt,
     params:
         script=find_script("seqstats"),
@@ -140,19 +140,15 @@ rule compute_verkko_assembled_sequence_id:
         "--no-homopolymer-runs "
         "--no-short-tandem-repeats "
         "--no-sequence-composition "
-        "--temp-records 100 "
         "--output-statistics {output.stats} "
         "--input-files {params.assembly}"
 
 
 rule prepare_verkko_dup_seq_report:
     input:
-        seq_stats = expand(
+        seq_stats = lambda wildcards: expand(
             rules.compute_verkko_assembled_sequence_id.output.stats,
-            asmtype=[
-                "hap1", "hap2", "unassigned", "disconnected",
-                "rdna", "ebv", "mito"
-            ],
+            asmtype=get_verkko_asm_units(wildcards.phasing_state),
             allow_missing=True
         )
     output:
@@ -194,18 +190,19 @@ rule filter_verkko_dup_sequences:
             "{sample}.{phasing_state}.asm-{asm_unit}.dedup.log"
         ),
     wildcard_constraints:
-        asmtype = "(hap1|hap2|unassigned|disconnected|rdna|ebv|mito)"
+        asm_unit = "(hap1|hap2|unassigned|disconnected|rdna|ebv|mito|wg)"
     conda:
         DIR_ENVS.joinpath("pyseq.yaml")
     params:
         script = find_script("filter_verkko_dupseq"),
         fasta = lambda wildcards, input: get_verkko_output(
-            input.file_collection, f"{wildcards.asmtype}_fasta"
+            input.file_collection, f"{wildcards.asm_unit}_fasta"
         ),
+        mock=lambda wildcards, output: pathlib.Path(output.asm_unit).with_suffix(".gz.MOCK"),
         acc_res=lambda wildcards, output: register_result(output)
     shell:
         "{params.script} --input {params.fasta} --report {input.report} "
-        "--verbose 2> {log}"
+        "--verbose --mock-output {params.mock} 2> {log}"
             " | "
         "bgzip > {output.asm_unit}"
             " && "
@@ -235,13 +232,29 @@ rule copy_verkko_exemplar_sequences:
         DIR_ENVS.joinpath("pyseq.yaml")
     params:
         fasta = lambda wildcards, input: get_verkko_output(
-            input.file_collection, f"{wildcards.asmtype}_repr"
+            input.file_collection, f"{wildcards.asm_unit}_repr"
         ),
         acc_res=lambda wildcards, output: register_result(output)
     shell:
         "cat {params.fasta} | bgzip > {output.ex_seq}"
             " && "
         "samtools faidx {output.ex_seq}"
+
+
+rule postprocess_verkko_unphased_samples:
+    input:
+        exemplars = expand(
+            rules.copy_verkko_exemplar_sequences.output.ex_seq,
+            phasing_state=["ps-sseq"],
+            asm_unit=["rdna", "ebv", "mito"],
+            sample=SAMPLES
+        ),
+        asm_units = expand(
+            rules.filter_verkko_dup_sequences.output.asm_unit,
+            phasing_state=["ps-none"],
+            asm_unit=get_verkko_asm_units("ps-none"),
+            sample=SAMPLES
+        )
 
 
 rule postprocess_verkko_sseq_samples:
@@ -255,10 +268,7 @@ rule postprocess_verkko_sseq_samples:
         asm_units = expand(
             rules.filter_verkko_dup_sequences.output.asm_unit,
             phasing_state=["ps-sseq"],
-            asm_unit=[
-                "hap1", "hap2", "unassigned",
-                "disconnected", "rdna", "ebv", "mito"
-            ],
+            asm_unit=get_verkko_asm_units("ps-sseq"),
             sample=SSEQ_SAMPLES
         )
 

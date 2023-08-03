@@ -46,6 +46,15 @@ def parse_command_line():
         help="Print processing summary to stderr. Default: False"
     )
 
+    parser.add_argument(
+        "--mock-output",
+        "-m",
+        type=lambda x: pl.Path(x).resolve(),
+        dest="mock_output",
+        default=None,
+        help="Write mock output to not break stream output."
+    )
+
     args = parser.parse_args()
 
     return args
@@ -77,6 +86,9 @@ def main():
         outfile.parent.mkdir(exist_ok=True, parents=True)
 
     discarded = 0
+    recnum = 0  # needed for case: empty input
+    written_records = 0
+    mock_created = False
     with ctl.ExitStack() as exs:
 
         read_input = exs.enter_context(
@@ -91,7 +103,15 @@ def main():
             if record.name in discard_sequences:
                 discarded += 1
                 continue
+            written_records += 1
             write_output.write(record)
+
+        if written_records == 0 and args.mock_output is not None:
+            write_output.write("no-sequence", "N")
+            args.mock_output.parent.mkdir(exist_ok=True, parents=True)
+            with open(args.mock_output, "w") as mock:
+                _ = mock.write(f"Empty input file: {input_filename}\n")
+            mock_created = True
 
     if args.verbose:
         report = (
@@ -99,7 +119,9 @@ def main():
             f"\nProcessed file: {input_filename}"
             f"\nProcessed records: {recnum}"
             f"\nDiscarded records: {discarded}"
-            f"\nFlagged 'discard' in report: {num_discard}\n\n"
+            f"\nWritten records: {written_records}"
+            f"\nFlagged 'discard' in report: {num_discard}"
+            f"\nMock output created? {mock_created}\n\n"
         )
         sys.stderr.write(report)
 
