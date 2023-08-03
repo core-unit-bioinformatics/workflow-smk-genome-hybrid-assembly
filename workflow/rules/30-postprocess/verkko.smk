@@ -202,6 +202,7 @@ rule filter_verkko_dup_sequences:
     resources:
         mem_mb=lambda wildcards, attempt: 2048 * attempt
     shell:
+        "rm -f {output.asm_unit}.EMPTY ; "
         "if [ -s {params.fasta} ] ; then"
         "{{ "
         "{params.script} --input {params.fasta} --report {input.report} --verbose 2> {log}"
@@ -210,7 +211,8 @@ rule filter_verkko_dup_sequences:
             " && "
         "samtools faidx {output.asm_unit} ; "
         "}} else {{ "
-        "touch {output.asm_unit} && touch {output.fai} && touch {output.gzi} ; "
+        "touch {output.asm_unit} && touch {output.fai} "
+        "&& touch {output.gzi} && touch {output.asm_unit}.EMPTY ; "
         "}} fi ;"
 
 
@@ -241,13 +243,15 @@ rule copy_verkko_exemplar_sequences:
         ),
         acc_res=lambda wildcards, output: register_result(output)
     shell:
+        "rm -f {output.ex_seq}.EMPTY ; "
         "if [ -s {params.fasta} ] ; then"
         "{{ "
         "cat {params.fasta} | bgzip > {output.ex_seq}"
             " && "
         "samtools faidx {output.ex_seq} ; "
         "}} else {{ "
-        "touch {output.ex_seq} && touch {output.fai} && touch {output.gzi} ; "
+        "touch {output.ex_seq} && touch {output.fai} "
+        "&& touch {output.gzi} touch {output.ex_seq}.EMPTY ; "
         "}} fi;"
 
 
