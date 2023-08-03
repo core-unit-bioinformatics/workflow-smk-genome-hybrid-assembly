@@ -254,7 +254,7 @@ rule postprocess_verkko_sseq_samples:
         ),
         asm_units = expand(
             rules.filter_verkko_dup_sequences.output.asm_unit,
-            phasing_state["ps-sseq"],
+            phasing_state=["ps-sseq"],
             asm_unit=[
                 "hap1", "hap2", "unassigned",
                 "disconnected", "rdna", "ebv", "mito"
