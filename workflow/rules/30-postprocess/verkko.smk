@@ -225,7 +225,7 @@ rule copy_verkko_exemplar_sequences:
             "assemblies", "verkko", "{sample}.{phasing_state}",
             "{sample}.{phasing_state}.exemplar-{asm_unit}.fasta.gz.fai"
         ),
-        fai = DIR_RES.joinpath(
+        gzi = DIR_RES.joinpath(
             "assemblies", "verkko", "{sample}.{phasing_state}",
             "{sample}.{phasing_state}.exemplar-{asm_unit}.fasta.gz.gzi"
         ),
