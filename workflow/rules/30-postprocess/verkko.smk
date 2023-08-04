@@ -203,7 +203,7 @@ rule filter_verkko_dup_sequences:
         mem_mb=lambda wildcards, attempt: 2048 * attempt
     shell:
         "rm -f {output.asm_unit}.EMPTY ; "
-        "if [ -s {params.fasta} ] ; then"
+        "if [ -s {params.fasta} ] ; then "
         "{{ "
         "{params.script} --input {params.fasta} --report {input.report} --verbose 2> {log}"
             " | "
@@ -244,7 +244,7 @@ rule copy_verkko_exemplar_sequences:
         acc_res=lambda wildcards, output: register_result(output)
     shell:
         "rm -f {output.ex_seq}.EMPTY ; "
-        "if [ -s {params.fasta} ] ; then"
+        "if [ -s {params.fasta} ] ; then "
         "{{ "
         "cat {params.fasta} | bgzip > {output.ex_seq}"
             " && "
