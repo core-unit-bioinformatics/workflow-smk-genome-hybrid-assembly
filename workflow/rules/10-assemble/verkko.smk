@@ -16,11 +16,11 @@ rule verkko_trio_samples:
         hap2_db = lambda wildcards: MAP_SAMPLE_TO_INPUT_FILES[wildcards.sample]["hap2"],
         profile = ancient(config["verkko_smk_profile"]),
     output:
-        done = DIR_PROC.joinpath("assemblies/verkko/{sample}.ps-trio.ok")
+        done = DIR_PROC.joinpath("10-assemble/verkko/{sample}.ps-trio.ok")
     log:
-        DIR_LOG.joinpath("assemblies/verkko/{sample}.ps-trio.log")
+        DIR_LOG.joinpath("10-assemble/verkko/{sample}.ps-trio.log")
     benchmark:
-        DIR_RSRC.joinpath("assemblies/verkko/{sample}.ps-trio.rsrc")
+        DIR_RSRC.joinpath("10-assemble/verkko/{sample}.ps-trio.rsrc")
     conda:
         DIR_ENVS.joinpath("verkko.yaml")
     wildcard_constraints:
@@ -125,11 +125,11 @@ rule verkko_strandseq_samples:
         paths = lambda wildcards: MAP_SAMPLE_TO_INPUT_FILES[wildcards.sample]["phasing_paths"],
         profile = ancient(config["verkko_smk_profile"]),
     output:
-        done = DIR_PROC.joinpath("assemblies/verkko/{sample}.ps-sseq.wait")
+        done = DIR_PROC.joinpath("10-assemble/verkko/{sample}.ps-sseq.wait")
     log:
-        DIR_LOG.joinpath("assemblies/verkko/{sample}.ps-sseq.log")
+        DIR_LOG.joinpath("10-assemble/verkko/{sample}.ps-sseq.log")
     benchmark:
-        DIR_RSRC.joinpath("assemblies/verkko/{sample}.ps-sseq.rsrc")
+        DIR_RSRC.joinpath("10-assemble/verkko/{sample}.ps-sseq.rsrc")
     conda:
         DIR_ENVS.joinpath("verkko.yaml")
     wildcard_constraints:
@@ -165,6 +165,45 @@ rule verkko_strandseq_samples:
             "&> {log} {params.check}"
 
 
+rule confirm_path_consistency:
+    """This rule is a (temporary?)
+    sanity check to confirm that the
+    phasing paths generated with the Strand-seq
+    phasing pipeline (i.e., external input)
+    are identical to the ones then used
+    for restarting the Verkko assembly
+    process with the --paths argument.
+    """
+    input:
+        check_file = rules.verkko_strandseq_samples.output.done,
+        original = lambda wildcards: MAP_SAMPLE_TO_INPUT_FILES[wildcards.sample]["phasing_paths"],
+    output:
+        confirmed = DIR_PROC.joinpath(
+            "10-assemble", "verkko", "{sample}.ps-sseq.paths.ok"
+        )
+    run:
+        import hashlib as hl
+        import pathlib as pl
+
+        copied_paths = pl.Path(input.check_file).with_suffix(".wd").joinpath(
+            "6-layoutContigs", "consensus_paths.txt"
+        )
+        assert copied_paths.is_file(), f"Verkko run incomplete: {wildcards.sample}.ps-sseq"
+
+        original_md5 = hl.md5(open(input.original, "rb").read()).hexdigest()
+        copied_md5 = hl.md5(open(copied_paths, "rb").read()).hexdigest()
+
+        if original_md5 != copied_md5:
+            logerr(f"Verkko phasing paths inconsistent: {input.original} vs {copied_paths}")
+            raise RuntimeError("10-assemble::verkko.smk::confirm_path_consistency - no MD5 match")
+
+        with open(output.confirmed, "w") as dump:
+            _ = dump.write(
+                f"{get_timestamp()}\n{input.original}\n{copied_paths}\n{original_md5}\n"
+            )
+    # END OF RUN BLOCK
+
+
 rule run_verkko_unphased_samples:
     input:
         assemblies = expand(
@@ -176,7 +215,7 @@ rule run_verkko_unphased_samples:
 rule run_verkko_trio_samples:
     input:
         assemblies = expand(
-            DIR_PROC.joinpath("assemblies/verkko/{sample}.ps-trio.ok"),
+            DIR_PROC.joinpath("10-assemble/verkko/{sample}.ps-trio.ok"),
             sample=TRIO_SAMPLES
         ),
 
@@ -184,6 +223,6 @@ rule run_verkko_trio_samples:
 rule run_verkko_sseq_samples:
     input:
         assemblies = expand(
-            DIR_PROC.joinpath("assemblies/verkko/{sample}.ps-sseq.ok"),
+            DIR_PROC.joinpath("10-assemble/verkko/{sample}.ps-sseq.ok"),
             sample=SSEQ_SAMPLES
         ),

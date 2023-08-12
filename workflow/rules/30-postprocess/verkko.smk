@@ -12,9 +12,10 @@ rule split_verkko_posthoc_phased_fasta:
     See gh#170
     """
     input:
-        wait_file = DIR_PROC.joinpath("assemblies/verkko/{sample}.{phasing_state}.wait")
+        wait_file = DIR_PROC.joinpath("10-assemble/verkko/{sample}.{phasing_state}.wait"),
+        path_check = DIR_PROC.joinpath("10-assemble/verkko/{sample}.{phasing_state}.paths.ok")
     output:
-        check_file = DIR_PROC.joinpath("assemblies/verkko/{sample}.{phasing_state}.ok")
+        check_file = DIR_PROC.joinpath("10-assemble/verkko/{sample}.{phasing_state}.ok")
     wildcard_constraints:
         phasing_state = "ps-sseq"
     resources:
@@ -78,9 +79,9 @@ rule split_verkko_posthoc_phased_fasta:
 localrules: collect_verkko_output_files
 rule collect_verkko_output_files:
     input:
-        check_file = DIR_PROC.joinpath("assemblies/verkko/{sample}.{phasing_state}.ok")
+        check_file = DIR_PROC.joinpath("10-assemble/verkko/{sample}.{phasing_state}.ok")
     output:
-        file_collection = DIR_PROC.joinpath("assemblies/verkko/{sample}.{phasing_state}.output.json")
+        file_collection = DIR_PROC.joinpath("10-assemble/verkko/{sample}.{phasing_state}.output.json")
     conda:
         DIR_ENVS.joinpath("pygraph.yaml")
     params:
@@ -116,7 +117,7 @@ rule compute_verkko_assembled_sequence_id:
     files (by sequence hash).
     """
     input:
-        file_collection = DIR_PROC.joinpath("assemblies/verkko/{sample}.{phasing_state}.output.json")
+        file_collection = DIR_PROC.joinpath("10-assemble/verkko/{sample}.{phasing_state}.output.json")
     output:
         stats = DIR_PROC.joinpath(
             "30-postprocess", "deduplicate", "seq_ids",
