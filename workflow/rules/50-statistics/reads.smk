@@ -4,13 +4,13 @@ rule compute_input_stats:
         reads=lambda wildcards: MAP_SAMPLE_TO_INPUT_FILES[wildcards.sample][wildcards.read_type]
     output:
         stats = DIR_RES.joinpath(
-            "statistics", "input", "{sample}_{read_type}.statistics.tsv.gz"
+            "statistics", "reads", "{sample}_{read_type}.statistics.tsv.gz"
         ),
         summary = DIR_RES.joinpath(
-            "statistics", "input", "{sample}_{read_type}.summary.tsv"
+            "statistics", "reads", "{sample}_{read_type}.summary.tsv"
         )
     benchmark:
-        DIR_RSRC.joinpath("statistics", "input", "{sample}_{read_type}.stats.rsrc")
+        DIR_RSRC.joinpath("statistics", "reads", "{sample}_{read_type}.stats.rsrc")
     wildcard_constraints:
         read_type="(hifi|ont)"
     conda:
@@ -41,10 +41,10 @@ rule compute_input_stats:
         "--input-files {input.reads}"
 
 
-rule compute_all_input_stats:
+rule compute_all_read_stats:
     input:
         stats = expand(DIR_RES.joinpath(
-                "statistics", "input",
+                "statistics", "reads",
                 "{sample}_{read_type}.summary.tsv"
             ),
             sample=SAMPLES,

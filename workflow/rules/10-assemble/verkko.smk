@@ -70,11 +70,11 @@ rule verkko_unphased_samples:
         nano = lambda wildcards: MAP_SAMPLE_TO_INPUT_FILES[wildcards.sample]["ont"],
         profile = ancient(config["verkko_smk_profile"]),
     output:
-        done = DIR_PROC.joinpath("assemblies/verkko/{sample}.ps-none.ok")
+        done = DIR_PROC.joinpath("10-assemble/verkko/{sample}.ps-none.ok")
     log:
-        DIR_LOG.joinpath("assemblies/verkko/{sample}.ps-none.log")
+        DIR_LOG.joinpath("10-assemble/verkko/{sample}.ps-none.log")
     benchmark:
-        DIR_RSRC.joinpath("assemblies/verkko/{sample}.ps-none.rsrc")
+        DIR_RSRC.joinpath("10-assemble/verkko/{sample}.ps-none.rsrc")
     conda:
         DIR_ENVS.joinpath("verkko.yaml")
     wildcard_constraints:
@@ -119,7 +119,7 @@ rule verkko_strandseq_samples:
     via --snakeopts to override the defaults.
     """
     input:
-        unphased = DIR_PROC.joinpath("assemblies/verkko/{sample}.ps-none.ok"),
+        unphased = DIR_PROC.joinpath("10-assemble/verkko/{sample}.ps-none.ok"),
         hifi = lambda wildcards: MAP_SAMPLE_TO_INPUT_FILES[wildcards.sample]["hifi"],
         nano = lambda wildcards: MAP_SAMPLE_TO_INPUT_FILES[wildcards.sample]["ont"],
         paths = lambda wildcards: MAP_SAMPLE_TO_INPUT_FILES[wildcards.sample]["phasing_paths"],
