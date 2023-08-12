@@ -134,7 +134,7 @@ def get_verkko_asm_units(phasing_state):
 
     scraps = ["disconnected", "rdna", "ebv", "mito"]
 
-    if phasing_state in ["ps-sseq", "sseq"]:
+    if phasing_state in ["ps-sseq", "sseq", "ps-trio"]:
         asm_units = ["hap1", "hap2", "unassigned"] + scraps
     elif phasing_state in ["ps-none", "none"]:
         asm_units = ["wg"] + scraps
