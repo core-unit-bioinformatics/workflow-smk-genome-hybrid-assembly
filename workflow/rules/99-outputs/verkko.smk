@@ -28,5 +28,11 @@ if RUN_VERKKO_UNPHASED_SAMPLES:
 
 if RUN_VERKKO_SSEQ_SAMPLES:
     VERKKO_OUTPUT.extend(
+        rules.postprocess_verkko_sseq_samples.input.exemplars
+    )
+    VERKKO_OUTPUT.extend(
+        rules.postprocess_verkko_sseq_samples.input.asm_units
+    )
+    VERKKO_OUTPUT.extend(
         rules.get_verkko_sseq_phased_output_stats.input.summary
     )
