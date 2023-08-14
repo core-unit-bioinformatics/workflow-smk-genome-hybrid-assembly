@@ -534,6 +534,7 @@ def main(cache_tempfile):
     proc_timings = []
     batch_number = 0
     stat_columns = set()
+    cached_records = 0
     with mp.Pool(args.cores) as pool:
         for input_file in sorted(all_inputs):
             file_name = input_file.name
@@ -578,6 +579,12 @@ def main(cache_tempfile):
 
                         sys.stderr.write(f"\nI/O time for dumping buffer (batch {batch_number}): {io_time} sec\n")
 
+                        # need to keep track of cached records to determine
+                        # if output was empty or if it just had the same
+                        # number of sequence records as set by the
+                        # "--temp-records" parameter to be cached.
+                        cached_records += stats.shape[0]
+
                         stats = []
                         index_records = []
                         proc_timings = []
@@ -587,7 +594,7 @@ def main(cache_tempfile):
     if save_proc_timings:
         proc_timings = pd.DataFrame.from_records(proc_timings, index="seq_name")
 
-    if not stats:
+    if not stats and cached_records == 0:
         stats = pd.DataFrame(
             columns=["seq_name", "seq_source", "seq_hash", "seq_length"]
         )
@@ -602,8 +609,12 @@ def main(cache_tempfile):
         mindex = pd.MultiIndex.from_tuples(
             index_records, names=["seq_name", "seq_source", "seq_hash"]
         )
-        stats = pd.DataFrame.from_records(stats, index=mindex)
-        stats.fillna(0, inplace=True)
+        if not stats:
+            # input file(s) have same number of records as "temp-records" parameter
+            stats = pd.DataFrame(index=mindex)
+        else:
+            stats = pd.DataFrame.from_records(stats, index=mindex)
+            stats.fillna(0, inplace=True)
         stat_columns = stat_columns.union(set(stats.columns))
 
         load_cached_data = cache_file_mode == "a"
