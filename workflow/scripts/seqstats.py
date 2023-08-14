@@ -535,12 +535,14 @@ def main(cache_tempfile):
     batch_number = 0
     stat_columns = set()
     cached_records = 0
+    processed_records = 0
     with mp.Pool(args.cores) as pool:
         for input_file in sorted(all_inputs):
             file_name = input_file.name
             with dnaio.open(str(input_file)) as seq_file:
                 stats_iter = pool.imap_unordered(proc_sequence, seq_file)
                 for seq_name, seq_hash, seq_stats, proc_time in stats_iter:
+                    processed_records += 1
                     index_records.append((seq_name, file_name, seq_hash))
                     stats.append(seq_stats)
                     if save_proc_timings:
@@ -630,6 +632,8 @@ def main(cache_tempfile):
             "seq_length",
             True,
         )
+
+        assert stats.shape[0] == processed_records
 
         if save_proc_timings:
             proc_timings = write_output_file(
