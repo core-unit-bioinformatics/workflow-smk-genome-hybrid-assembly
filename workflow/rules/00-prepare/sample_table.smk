@@ -136,7 +136,7 @@ def _read_input_files_from_fofn(fofn_path):
                     file_path = DATA_ROOT.joinpath(line.strip()).resolve(strict=True)
                 except FileNotFoundError:
                     err_msg = "\nERROR\n"
-                    err_msg += f"Cannot find file: {line.strip}\n"
+                    err_msg += f"Cannot find file: {line.strip()}\n"
                     err_msg += f"Data root is set to: {DATA_ROOT}\n"
                     sys.stderr.write(err_msg)
                     raise
