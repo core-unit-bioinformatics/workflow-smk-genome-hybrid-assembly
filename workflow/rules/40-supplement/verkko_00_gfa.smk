@@ -11,7 +11,7 @@ rule dump_verkko_gfa_sequences:
         ),
         faidx = DIR_PROC.joinpath(
             "40-supplement", "verkko", "graph_seq",
-            "{sample}.{phasing_state}.gfaseq.hpc.fasta.gz"
+            "{sample}.{phasing_state}.gfaseq.hpc.fasta.gz.fai"
         ),
     conda:
         DIR_ENVS.joinpath("graphtools.yaml")
