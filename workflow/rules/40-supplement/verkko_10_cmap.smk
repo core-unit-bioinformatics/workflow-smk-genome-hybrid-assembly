@@ -98,7 +98,7 @@ rule normalize_minimap_gfa_to_fasta_align_paf:
 rule run_verkko_supplement_cmap:
     input:
         tsv = expand(
-            rules.normalize_minimap_gfa_to_fasta_align_paf.output.tsv,
+            rules.homopolymer_compress_verkko_whole_genome.output.cmap,
             sample=SSEQ_SAMPLES,
             phasing_state=["ps-sseq"]
         )
