@@ -60,7 +60,7 @@ rule align_verkko_graphseq_to_fastaseq:
 rule normalize_minimap_gfa_to_fasta_align_paf:
     input:
         paf = rules.minimap_assembly_to_reference_align_paf.output.paf
-   output:
+    output:
         tsv = DIR_PROC.joinpath(
             "40-supplement", "verkko", "gfa_to_fasta_align",
             "{sample}.{phasing_state}.norm-paf.tsv.gz"
