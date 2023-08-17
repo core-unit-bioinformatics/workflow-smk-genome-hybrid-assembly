@@ -22,6 +22,6 @@ rule dump_verkko_gfa_sequences:
     params:
         gfa = lambda wildcards, input: get_verkko_output(input.file_collection, "wg_gfa_hpc")
     shell:
-        "gfatools gfa2fa -l 0 {input.gfa} | bgzip -c > {output.fasta}"
+        "gfatools gfa2fa -l 0 {params.gfa} | bgzip -c > {output.fasta}"
             " && "
         "samtools faidx {output.fasta}"
