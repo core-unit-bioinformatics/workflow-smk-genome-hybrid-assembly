@@ -18,7 +18,7 @@ rule homopolymer_compress_verkko_whole_genome:
         ),
         faidx = DIR_PROC.joinpath(
             "40-supplement", "verkko", "fasta_seq",
-            "{sample}.{phasing_state}.fastaeq.hpc.fasta.gz"
+            "{sample}.{phasing_state}.fastaseq.hpc.fasta.gz.fai"
         ),
     benchmark:
         DIR_RSRC.joinpath(
