@@ -15,6 +15,10 @@ include: "10-assemble/hifiasm.smk"
 
 include: "30-postprocess/verkko.smk"
 
+include: "40-supplement/verkko_pyutils.smk"
+include: "40-supplement/verkko_00_gfa.smk"
+include: "40-supplement/verkko_10_cmap.smk"
+
 include: "50-statistics/reads.smk"
 include: "50-statistics/assemblies.smk"
 
