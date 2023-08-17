@@ -20,6 +20,10 @@ rule homopolymer_compress_verkko_whole_genome:
             "40-supplement", "verkko", "fasta_seq",
             "{sample}.{phasing_state}.fastaseq.hpc.fasta.gz.fai"
         ),
+        gzidx = DIR_PROC.joinpath(
+            "40-supplement", "verkko", "fasta_seq",
+            "{sample}.{phasing_state}.fastaseq.hpc.fasta.gz.gzi"
+        ),
         cmap = DIR_PROC.joinpath(
             "40-supplement", "verkko", "fasta_seq",
             "{sample}.{phasing_state}.cmap.hpc.tsv.gz"
@@ -53,6 +57,33 @@ rule homopolymer_compress_verkko_whole_genome:
         "samtools faidx {output.fasta}"
             " && "
         "bgzip --threads {threads} {params.plain_tsv}"
+            " && "
+        "tabix --zero-based --sequence 1 --begin 2 --end 3 --comment \"#\" {output.cmap}"
+            " ; "
+        "rm -f {params.plain_tsv}"  # in case of rule failure
+
+
+rule swap_hpc_to_plain_cmap:
+    input:
+        cmap = rules.homopolymer_compress_verkko_whole_genome.output.cmap
+    output:
+        cmap = DIR_PROC.joinpath(
+            "40-supplement", "verkko", "fasta_seq",
+            "{sample}.{phasing_state}.cmap.plain.tsv.gz"
+        ),
+        tbi = DIR_PROC.joinpath(
+            "40-supplement", "verkko", "fasta_seq",
+            "{sample}.{phasing_state}.cmap.plain.tsv.gz.tbi"
+        )
+    conda: DIR_ENVS.joinpath("pyseq.yaml")
+    threads: CPU_LOW
+    resources:
+        mem_mb = lambda wildcards, attempt: 4096 * attempt,
+        time_hrs = lambda wildcards, attempt: attempt * attempt
+    params:
+        script = find_script("swap_cmap_orientation"),
+    shell:
+        "zcat {input.cmap} | {params.script} | bgzip -c --threads {threads} > {output.cmap}"
             " && "
         "tabix --zero-based --sequence 1 --begin 2 --end 3 --comment \"#\" {output.cmap}"
 
@@ -99,13 +130,13 @@ rule normalize_minimap_gfa_to_fasta_align_paf:
 rule run_verkko_supplement_cmap:
     input:
         cmap = expand(
-            rules.homopolymer_compress_verkko_whole_genome.output.cmap,
+            rules.swap_hpc_to_plain_cmap.output.cmap,
             sample=SSEQ_SAMPLES,
             phasing_state=["ps-sseq"]
         ),
-        #tsv = expand(
-        #    rules.normalize_minimap_gfa_to_fasta_align_paf.output.tsv,
-        #    sample=SSEQ_SAMPLES,
-        #    phasing_state=["ps-sseq"]
-        #)
+        tsv = expand(
+            rules.normalize_minimap_gfa_to_fasta_align_paf.output.tsv,
+            sample=SSEQ_SAMPLES,
+            phasing_state=["ps-sseq"]
+        )
 
