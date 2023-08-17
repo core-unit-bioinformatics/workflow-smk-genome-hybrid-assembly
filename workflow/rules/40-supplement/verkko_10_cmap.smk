@@ -20,6 +20,14 @@ rule homopolymer_compress_verkko_whole_genome:
             "40-supplement", "verkko", "fasta_seq",
             "{sample}.{phasing_state}.fastaseq.hpc.fasta.gz.fai"
         ),
+        cmap = DIR_PROC.joinpath(
+            "40-supplement", "verkko", "fasta_seq",
+            "{sample}.{phasing_state}.cmap.hpc.tsv.gz"
+        ),
+        tbi = DIR_PROC.joinpath(
+            "40-supplement", "verkko", "fasta_seq",
+            "{sample}.{phasing_state}.cmap.hpc.tsv.gz.tbi"
+        ),
     benchmark:
         DIR_RSRC.joinpath(
             "40-supplement", "verkko", "fasta_seq",
@@ -31,14 +39,21 @@ rule homopolymer_compress_verkko_whole_genome:
             "{sample}.{phasing_state}.fastaseq.hpc.log"
         ),
     conda: DIR_ENVS.joinpath("pyseq.yaml")
+    threads: CPU_LOW
     resources:
-        mem_mb = lambda wildcards, attempt: 8192 * attempt
+        mem_mb = lambda wildcards, attempt: 16384 * attempt
     params:
-        script = find_script("seq_hpc")
+        script = find_script("seq_hpc"),
+        plain_tsv = lambda wildcards, output: pathlib.Path(output.cmap).with_suffix("")
     shell:
-        "zcat {input.fasta} | {params.script} --report | bgzip -c > {output.fasta}"
+        "zcat {input.fasta} | {params.script} --cmap-table {params.plain_tsv} --report "
+        "| bgzip -c > {output.fasta}"
             " && "
         "samtools faidx {output.fasta}"
+            " && "
+        "bgzip --threads {threads} {params.plain_tsv}"
+            " && "
+        "tabix --zero-based --sequence 1 --begin 2 --end 3 --comment ""#"" {output.cmap}"
 
 
 rule minimap_align_verkko_graphseq_to_fastaseq:

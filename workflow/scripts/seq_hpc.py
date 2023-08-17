@@ -54,6 +54,14 @@ def parse_command_line():
     )
 
     parser.add_argument(
+        "--cmap-table",
+        "-ct",
+        default=None,
+        type=lambda x: pl.Path(x).resolve(),
+        dest="cmap_table",
+    )
+
+    parser.add_argument(
         "--report",
         "-r",
         action="store_true",
@@ -69,6 +77,14 @@ def parse_command_line():
         default=0,
         dest="buffer_size",
         help="Set buffer size (#char) or 0 for no buffer. Default: 0"
+    )
+
+    parser.add_argument(
+        "--skip-self-test",
+        action="store_true",
+        default=False,
+        dest="skip_self_test",
+        help="Skip self test of implementation at startup. Default: False"
     )
 
     args = parser.parse_args()
@@ -91,9 +107,59 @@ def homopolymer_compress(sequence):
     if hpc_seq[-1] != sequence[-1]:
         hpc_seq += sequence[-1]
     compressed_length = len(hpc_seq)
-    ratio = compressed_length / uncompressed_length
+    ratio = round(compressed_length / uncompressed_length, 3)
     assert ratio <= 1
-    return hpc_seq, ratio
+    # None in return for uniform interface
+    # with cmap version
+    return hpc_seq, ratio, None
+
+
+def homopolymer_compress_with_cmap(sequence):
+    """NB: this would fail on empty input
+
+    This version is about ~50% slower, but creates
+    a 1-to-1 coordinate map between sequences
+    on the fly.
+
+    Args:
+        sequence (str): sequence to hpc
+    Returns:
+        str: hpc sequence
+    """
+    uncompressed_length = len(sequence)
+    hpc_seq = sequence[0]
+    cmap = []
+    raw_block_start = 0
+    raw_block_end = 1
+    hpc_block_start = 0
+    hpc_block_end = 1
+    hpc_stretch = False
+    for char in sequence[1:]:
+        if char == hpc_seq[-1]:
+            raw_block_end += 1
+            hpc_stretch = True
+        elif not hpc_stretch:
+            hpc_seq += char
+            raw_block_end += 1
+            hpc_block_end += 1
+        else:
+            # homopolymer stretch ended
+            cmap.append((hpc_block_start, hpc_block_end, raw_block_start, raw_block_end))
+            hpc_seq += char
+            raw_block_start = raw_block_end
+            raw_block_end += 1
+            hpc_block_start = hpc_block_end
+            hpc_block_end += 1
+            hpc_stretch = False
+    cmap.append((hpc_block_start, hpc_block_end, raw_block_start, raw_block_end))
+    compressed_length = len(hpc_seq)
+    ratio = round(compressed_length / uncompressed_length, 3)
+
+    if not cmap:
+        raise ValueError("Failed to generate coordinate map")
+
+    assert ratio <= 1
+    return hpc_seq, ratio, cmap
 
 
 def check_implementation():
@@ -109,7 +175,12 @@ def check_implementation():
     ]
 
     assert all(
-        [homopolymer_compress(test) == result]
+        [homopolymer_compress(test)[0] == result]
+        for test, result in zip(test_strings, result_strings)
+    )
+
+    assert all(
+        [homopolymer_compress_with_cmap(test)[0] == result]
         for test, result in zip(test_strings, result_strings)
     )
 
@@ -118,9 +189,10 @@ def check_implementation():
 
 def main():
 
-    _ = check_implementation()
-
     args = parse_command_line()
+
+    if not args.skip_self_test:
+        _ = check_implementation()
 
     if args.input not in ["stdin", "-", "/dev/stdin", ""]:
         infile = pl.Path(args.input).resolve(strict=True)
@@ -139,6 +211,18 @@ def main():
         outfile = sys.stdout.buffer
 
 
+    if args.cmap_table is not None:
+        hpc = homopolymer_compress_with_cmap
+        args.cmap_table.parent.mkdir(exist_ok=True, parents=True)
+        coordinate_map = io.StringIO()
+        cmap_table_header = "\t".join(
+            ["#name", "hpc_start", "hpc_end", "seqnum", "plain_start", "plain_end", "hpc_ratio"]
+        ) + "\n"
+        coordinate_map.write(cmap_table_header)
+    else:
+        hpc = homopolymer_compress
+        coordinate_map = None
+
     buffer_limit = args.buffer_size
     buffered = 0
     use_buffer = buffer_limit > 0
@@ -147,6 +231,7 @@ def main():
 
     avg_hpc_ratio = 0.
     process_start = time.perf_counter()
+
     with ctl.ExitStack() as exs:
         read_input = exs.enter_context(
             dnaio.open(infile, fileformat=input_format, mode="r")
@@ -166,10 +251,28 @@ def main():
                 )
             )
 
-        hpc = homopolymer_compress
+        if args.cmap_table is not None:
+            cmap_table = exs.enter_context(xopen.xopen(args.cmap_table, mode="w"))
+
         for record_num, seq_record in enumerate(read_input, start=1):
-            hpc_seq, ratio = hpc(seq_record.sequence.upper())
+            hpc_seq, ratio, cmap = hpc(seq_record.sequence.upper())
             avg_hpc_ratio += ratio
+            if cmap is not None:
+                [
+                    coordinate_map.write(
+                        (
+                            f"{seq_record.name}\t"
+                            f"{cmap_block[0]}\t"
+                            f"{cmap_block[1]}\t"
+                            f"{record_num}\t"
+                            f"{cmap_block[2]}\t"
+                            f"{cmap_block[3]}\t"
+                            f"{ratio}\n"
+                        )
+                    )
+                    for cmap_block in cmap
+                ]
+
 
             if use_buffer:
                 write_buffer.write(seq_record.name, hpc_seq)
@@ -180,11 +283,21 @@ def main():
                     buffer_obj = io.BytesIO()
                     write_buffer = dnaio.open(buffer_obj, mode="w", fileformat="fasta")
                     buffered = 0
+                    if cmap is not None:
+                        cmap_table.write(coordinate_map.getvalue())
+                        coordinate_map = io.StringIO()
+
             else:
                 write_output.write(seq_record.name, hpc_seq)
+                if cmap is not None:
+                    cmap_table.write(coordinate_map.getvalue())
+                    coordinate_map = io.StringIO()
+
 
         if buffered > 0:
             write_output.write(buffer_obj.getvalue())
+            if cmap is not None:
+                cmap_table.write(coordinate_map.getvalue())
 
     process_end = time.perf_counter()
     total_time = round(process_end - process_start, 3)
