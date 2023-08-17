@@ -20,6 +20,11 @@ rule homopolymer_compress_verkko_whole_genome:
             "40-supplement", "verkko", "fasta_seq",
             "{sample}.{phasing_state}.fastaeq.hpc.fasta.gz"
         ),
+    benchmark:
+        DIR_RSRC.joinpath(
+            "40-supplement", "verkko", "fasta_seq",
+            "{sample}.{phasing_state}.fastaseq.hpc.rsrc"
+        ),
     log:
         DIR_LOG.joinpath(
             "40-supplement", "verkko", "fasta_seq",
@@ -27,7 +32,7 @@ rule homopolymer_compress_verkko_whole_genome:
         ),
     conda: DIR_ENVS.joinpath("pyseq.yaml")
     resources:
-        mem_mb = lambda wildcards, attempt: 2048 * attempt
+        mem_mb = lambda wildcards, attempt: 8192 * attempt
     params:
         script = find_script("seq_hpc")
     shell:
