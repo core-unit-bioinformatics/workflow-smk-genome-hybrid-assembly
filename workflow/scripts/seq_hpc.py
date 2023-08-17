@@ -124,12 +124,13 @@ def main():
 
     if args.input not in ["stdin", "-", "/dev/stdin", ""]:
         infile = pl.Path(args.input).resolve(strict=True)
-        if not args.force_format:
-            input_format = None
-        else:
-            input_format = args.input_format
     else:
         infile = sys.stdin.buffer
+
+    if not args.force_format:
+        input_format = None
+    else:
+        input_format = args.input_format
 
     if args.output not in ["stdout", "-", "/dev/stdout", ""]:
         outfile = pl.Path(args.output).resolve()
