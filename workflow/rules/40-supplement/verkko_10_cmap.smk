@@ -54,7 +54,7 @@ rule homopolymer_compress_verkko_whole_genome:
             " && "
         "bgzip --threads {threads} {params.plain_tsv}"
             " && "
-        "tabix --zero-based --sequence 1 --begin 2 --end 3 --comment ""#"" {output.cmap}"
+        "tabix --zero-based --sequence 1 --begin 2 --end 3 --comment \"#\" {output.cmap}"
 
 
 rule minimap_align_verkko_graphseq_to_fastaseq:
