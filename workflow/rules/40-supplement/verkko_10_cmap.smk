@@ -36,7 +36,7 @@ rule homopolymer_compress_verkko_whole_genome:
         "samtools faidx {output.fasta}"
 
 
-rule align_verkko_graphseq_to_fastaseq:
+rule minimap_align_verkko_graphseq_to_fastaseq:
     input:
         fastaseq = rules.homopolymer_compress_verkko_whole_genome.output.fasta,
         gfaseq = get_verkko_gfaseq_hpc_fasta
@@ -59,7 +59,7 @@ rule align_verkko_graphseq_to_fastaseq:
 
 rule normalize_minimap_gfa_to_fasta_align_paf:
     input:
-        paf = rules.minimap_assembly_to_reference_align_paf.output.paf
+        paf = rules.minimap_align_verkko_graphseq_to_fastaseq.output.paf
     output:
         tsv = DIR_PROC.joinpath(
             "40-supplement", "verkko", "gfa_to_fasta_align",
