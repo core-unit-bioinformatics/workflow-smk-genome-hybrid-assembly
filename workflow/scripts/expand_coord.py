@@ -70,7 +70,7 @@ def prepare_paf_alignments(paf_file):
     ]
 
     # read alignments, assuming that fits in memory
-    paf = pd.read_csv(paf_file, sep="\t", header=0, comment="#")
+    paf = pd.read_csv(paf_file, sep="\t", header=0, comment="#", usecols=retain_columns)
 
     # assumption: if the CIGAR string does not contain
     # I or D operations, the interval mapping should be
