@@ -127,6 +127,28 @@ rule normalize_minimap_gfa_to_fasta_align_paf:
         "{params.script} --input {input.paf} --output {output.tsv}"
 
 
+rule expand_sequence_coordinates:
+    input:
+        paf = rules.normalize_minimap_gfa_to_fasta_align_paf.output.tsv,
+        cmap = rules.homopolymer_compress_verkko_whole_genome.output.cmap,
+        tbi = rules.homopolymer_compress_verkko_whole_genome.output.tbi
+    output:
+        tsv = DIR_PROC.joinpath(
+            "40-supplement", "verkko", "map_hpc_plain",
+            "{sample}.{phasing_state}.graph-linear-hpc.tsv.gz"
+        )
+    conda:
+        DIR_ENVS.joinpath("pyseq.yaml")
+    resources:
+        mem_mb = lambda wildcards, attempt: 4096 * attempt
+    params:
+        script=find_script("expand_coord")
+    shell:
+        "{params.script} --norm-paf {input.paf} --paf-coord-space hpc "
+            "--coord-map {input.cmap} --paf-coord-expand target "
+            "--out-table {output.tsv}"
+
+
 rule run_verkko_supplement_cmap:
     input:
         cmap = expand(
@@ -135,7 +157,7 @@ rule run_verkko_supplement_cmap:
             phasing_state=["ps-sseq"]
         ),
         tsv = expand(
-            rules.normalize_minimap_gfa_to_fasta_align_paf.output.tsv,
+            rules.expand_sequence_coordinates.output.tsv,
             sample=SSEQ_SAMPLES,
             phasing_state=["ps-sseq"]
         )
