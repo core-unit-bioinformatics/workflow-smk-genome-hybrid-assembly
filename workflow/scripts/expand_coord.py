@@ -138,7 +138,7 @@ def main():
     )
     with ctl.ExitStack() as exs:
 
-        cmap = exs.enter_context(pysam.TabixFile(args.cmap))
+        cmap = exs.enter_context(pysam.TabixFile(str(args.cmap)))
 
         paf[[exp_start_column, exp_end_column, "wiggle"]] = paf.apply(
             expand_coordinate_space,
