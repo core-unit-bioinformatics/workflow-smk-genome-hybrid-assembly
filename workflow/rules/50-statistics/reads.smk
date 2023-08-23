@@ -18,7 +18,7 @@ rule compute_input_stats:
     threads: CPU_HIGH
     resources:
         mem_mb=lambda wildcards, attempt: 24576 * attempt,
-        time_hrs=lambda wildcards, attempt: 167
+        time_hrs=lambda wildcards, attempt: 23 + 12 * attempt
     params:
         script=find_script("seqstats"),
         report_seq_lens=lambda wildcards: (
