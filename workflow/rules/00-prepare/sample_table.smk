@@ -23,7 +23,8 @@ def process_sample_sheet():
     SAMPLE_SHEET = pandas.read_csv(
         SAMPLE_SHEET_FILE,
         sep="\t",
-        header=0
+        header=0,
+        comment="#"
     )
 
     # step 1: each row is a sample,
