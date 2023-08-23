@@ -14,7 +14,7 @@ rule compute_input_stats:
     wildcard_constraints:
         read_type="(hifi|ont)"
     conda:
-        DIR_ENVS.joinpath("pystats.yaml")
+        DIR_ENVS.joinpath("pyseq.yaml")
     threads: CPU_HIGH
     resources:
         mem_mb=lambda wildcards, attempt: 24576 * attempt,
