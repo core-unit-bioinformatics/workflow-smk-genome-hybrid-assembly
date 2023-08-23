@@ -207,7 +207,7 @@ rule confirm_path_consistency:
 rule run_verkko_unphased_samples:
     input:
         assemblies = expand(
-            DIR_PROC.joinpath("assemblies/verkko/{sample}.ps-none.ok"),
+            DIR_PROC.joinpath("10-assemble/verkko/{sample}.ps-none.ok"),
             sample=UNPHASED_SAMPLES
         ),
 
