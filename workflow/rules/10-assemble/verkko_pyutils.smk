@@ -40,6 +40,9 @@ def increase_mbg_resources(attempt):
     increase the MBG resource requirements
     if the Verkko run is restarted.
 
+    Note that these values are scaled again internally
+    by Verkko, see Snakefiles::functions.sm::getMBGMemoryRequest
+
     In Verkko v1.3.1, this pertains to ...
     ... option string `--mbg-run`
     and affects settings ...
@@ -50,9 +53,12 @@ def increase_mbg_resources(attempt):
     ... for rule `1-buildGraph.sm::buildGraph`
     """
     mbg_resources = ""
-    if int(attempt) > 1:
+    if int(attempt) == 2:
         # this is CPU - MEM_GB - TIME_HRS
         mbg_resources = "--mbg-run 8 160 72"
+    if int(attempt) > 2:
+        # this is CPU - MEM_GB - TIME_HRS
+        mbg_resources = "--mbg-run 8 224 96"
     return mbg_resources
 
 
