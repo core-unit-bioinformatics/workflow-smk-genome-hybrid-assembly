@@ -45,11 +45,10 @@ rule verkko_trio_samples:
         dryrun="--dry-run" if VERKKO_DRY_RUN else "",
         screen=lambda wildcards: assemble_verkko_screen_string(),
         wd=lambda wildcards, output: pathlib.Path(output.done).with_suffix(".wd"),
-        assm_out=lambda wildcards, output: pathlib.Path(
-            output.done).with_suffix(".wd").joinpath("assembly.fasta"),
         check=lambda wildcards, output: (
             "" if VERKKO_DRY_RUN else
-            f" && touch {output.done} && test -s {params.assm_out}"
+            f" && touch {output.done} && "
+            f"test -s {pathlib.Path(output.done).with_suffix('.wd').joinpath('assembly.fasta')}"
         ),
         acc_in=lambda wildcards, input: register_input(input.hifi, input.nano, input.hap1_db, input.hap2_db),
     shell:
@@ -104,11 +103,10 @@ rule verkko_unphased_samples:
         dryrun="--dry-run" if VERKKO_DRY_RUN else "",
         screen=lambda wildcards: assemble_verkko_screen_string(),
         wd=lambda wildcards, output: pathlib.Path(output.done).with_suffix(".wd"),
-        assm_out=lambda wildcards, output: pathlib.Path(
-            output.done).with_suffix(".wd").joinpath("assembly.fasta"),
         check=lambda wildcards, output: (
             "" if VERKKO_DRY_RUN else
-            f" && touch {output.done} && test -s {params.assm_out}"
+            f" && touch {output.done} && "
+            f"test -s {pathlib.Path(output.done).with_suffix('.wd').joinpath('assembly.fasta')}"
         ),
         acc_in=lambda wildcards, input: register_input(input.hifi, input.nano),
     shell:
@@ -164,11 +162,10 @@ rule verkko_strandseq_samples:
         dryrun="--dry-run" if VERKKO_DRY_RUN else "",
         screen=lambda wildcards: assemble_verkko_screen_string(),
         wd=lambda wildcards, output: pathlib.Path(output.done).with_suffix(".wd"),
-        assm_out=lambda wildcards, output: pathlib.Path(
-            output.done).with_suffix(".wd").joinpath("assembly.fasta"),
         check=lambda wildcards, output: (
             "" if VERKKO_DRY_RUN else
-            f" && touch {output.done} && test -s {params.assm_out}"
+            f" && touch {output.done} && "
+            f"test -s {pathlib.Path(output.done).with_suffix('.wd').joinpath('assembly.fasta')}"
         ),
         assm_dir=lambda wildcards, input: pathlib.Path(input.unphased).with_suffix(".wd"),
         phasing_dir=lambda wildcards, output: pathlib.Path(output.done).with_suffix(".wd"),
