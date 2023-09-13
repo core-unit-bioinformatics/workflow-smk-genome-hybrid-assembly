@@ -1,3 +1,15 @@
+"""
+2023-09-13
+Change for all Verkko rules;
+Runs failing the initial graph building stage
+are not properly signalling this failure and
+the check output files is created. Added a
+'test -s assembly.fasta' to make sure that
+the main assembly file is non-empty after
+the run.
+"""
+
+
 localrules: verkko_trio_samples
 rule verkko_trio_samples:
     """
@@ -31,10 +43,15 @@ rule verkko_trio_samples:
         lay_rsrc=lambda wildcards, attempt: increase_layout_contigs_resources(attempt),
     params:
         dryrun="--dry-run" if VERKKO_DRY_RUN else "",
-        check=lambda wildcards, output: "" if VERKKO_DRY_RUN else f" && touch {output.done}",
-        acc_in=lambda wildcards, input: register_input(input.hifi, input.nano),
         screen=lambda wildcards: assemble_verkko_screen_string(),
         wd=lambda wildcards, output: pathlib.Path(output.done).with_suffix(".wd"),
+        assm_out=lambda wildcards, output: pathlib.Path(
+            output.done).with_suffix(".wd").joinpath("assembly.fasta"),
+        check=lambda wildcards, output: (
+            "" if VERKKO_DRY_RUN else
+            f" && touch {output.done} && test -s {params.assm_out}"
+        ),
+        acc_in=lambda wildcards, input: register_input(input.hifi, input.nano, input.hap1_db, input.hap2_db),
     shell:
         "/usr/bin/time -v "
         "verkko --lsf "
@@ -84,11 +101,16 @@ rule verkko_unphased_samples:
         pop_rsrc=lambda wildcards, attempt: increase_process_ont_resources(attempt),
         lay_rsrc=lambda wildcards, attempt: increase_layout_contigs_resources(attempt),
     params:
-        dryrun = "--dry-run" if VERKKO_DRY_RUN else "",
-        check = lambda wildcards, output: "" if VERKKO_DRY_RUN else f" && touch {output.done}",
-        acc_in=lambda wildcards, input: register_input(input.hifi, input.nano),
+        dryrun="--dry-run" if VERKKO_DRY_RUN else "",
         screen=lambda wildcards: assemble_verkko_screen_string(),
         wd=lambda wildcards, output: pathlib.Path(output.done).with_suffix(".wd"),
+        assm_out=lambda wildcards, output: pathlib.Path(
+            output.done).with_suffix(".wd").joinpath("assembly.fasta"),
+        check=lambda wildcards, output: (
+            "" if VERKKO_DRY_RUN else
+            f" && touch {output.done} && test -s {params.assm_out}"
+        ),
+        acc_in=lambda wildcards, input: register_input(input.hifi, input.nano),
     shell:
         "/usr/bin/time -v "
         "verkko --lsf "
@@ -139,12 +161,18 @@ rule verkko_strandseq_samples:
         pop_rsrc=lambda wildcards, attempt: increase_process_ont_resources(attempt),
         lay_rsrc=lambda wildcards, attempt: increase_layout_contigs_resources(attempt),
     params:
-        dryrun = "--dry-run" if VERKKO_DRY_RUN else "",
-        check = lambda wildcards, output: "" if VERKKO_DRY_RUN else f" && touch {output.done}",
-        acc_in=lambda wildcards, input: register_input(input.hifi, input.nano),
+        dryrun="--dry-run" if VERKKO_DRY_RUN else "",
         screen=lambda wildcards: assemble_verkko_screen_string(),
+        wd=lambda wildcards, output: pathlib.Path(output.done).with_suffix(".wd"),
+        assm_out=lambda wildcards, output: pathlib.Path(
+            output.done).with_suffix(".wd").joinpath("assembly.fasta"),
+        check=lambda wildcards, output: (
+            "" if VERKKO_DRY_RUN else
+            f" && touch {output.done} && test -s {params.assm_out}"
+        ),
         assm_dir=lambda wildcards, input: pathlib.Path(input.unphased).with_suffix(".wd"),
-        phasing_dir=lambda wildcards, output: pathlib.Path(output.done).with_suffix(".wd")
+        phasing_dir=lambda wildcards, output: pathlib.Path(output.done).with_suffix(".wd"),
+        acc_in=lambda wildcards, input: register_input(input.hifi, input.nano, input.paths),
     shell:
         "/usr/bin/time -v "
         "verkko --lsf "
