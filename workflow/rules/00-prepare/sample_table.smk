@@ -87,6 +87,7 @@ def collect_input_files(sample_sheet):
                 hap1_input_db = str(DIR_PROC.joinpath(
                     "00-prepare", "verkko", "hapmer_dbs",
                     f"{sample}.hap1.meryl"))
+                sample_input[sample]["hap1_tar"] = hap1_db
             else:
                 raise ValueError(f"Cannot process k-mer / hap-mer meryl DB input: {hap1_db}")
             sample_input[sample]["hap1"] = hap1_input_db
@@ -102,6 +103,7 @@ def collect_input_files(sample_sheet):
                 hap2_input_db = str(DIR_PROC.joinpath(
                     "00-prepare", "verkko", "hapmer_dbs",
                     f"{sample}.hap2.meryl"))
+                sample_input[sample]["hap2_tar"] = hap2_db
             else:
                 raise ValueError(f"Cannot process k-mer / hap-mer meryl DB input: {hap2_db}")
             sample_input[sample]["hap2"] = hap2_input_db

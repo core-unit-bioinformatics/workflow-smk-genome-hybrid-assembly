@@ -102,7 +102,7 @@ rule extract_meryl_hapmer_db:
     k-mer / hap-mer databases as input
     """
     input:
-        targz = lambda wildcards: MAP_SAMPLE_TO_INPUT_FILES[wildcards.sample][wildcards.hap_db]
+        targz = lambda wildcards: MAP_SAMPLE_TO_INPUT_FILES[wildcards.sample][f"{wildcards.hap_db}_tar"]
     output:
         meryl = directory(DIR_PROC.joinpath(
             "00-prepare", "verkko", "hapmer_dbs",
