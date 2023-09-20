@@ -302,7 +302,7 @@ def main():
                     cmap_table.write(coordinate_map.getvalue())
                     coordinate_map = io.StringIO()
 
-            if args.break_after > 0 and args.break_after > record_num:
+            if args.break_after > 0 and record_num > args.break_after:
                 break
 
 
