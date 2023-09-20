@@ -50,7 +50,13 @@ rule verkko_trio_samples:
             f" && touch {output.done} && "
             f"test -s {pathlib.Path(output.done).with_suffix('.wd').joinpath('assembly.fasta')}"
         ),
-        acc_in=lambda wildcards, input: register_input(input.hifi, input.nano, input.hap1_db, input.hap2_db),
+        acc_in=lambda wildcards, input: register_input(
+            input.hifi, input.nano
+        ),
+        # TODO debug
+        # skip  input.hap1_db, input.hap2_db for now
+        # as these are not regular files (directories),
+        # add ignore_dirs option in register_input
     shell:
         "/usr/bin/time -v "
         "verkko --lsf "
