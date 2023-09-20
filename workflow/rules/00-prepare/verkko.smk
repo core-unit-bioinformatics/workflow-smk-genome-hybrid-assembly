@@ -109,9 +109,9 @@ rule extract_meryl_hapmer_db:
             "{sample}.{hap_db}.meryl"
         ))
     params:
-        folder = lambda wildcards, output: pathlib.Path(output.meryl).parent,
+        folder = lambda wildcards, output: pathlib.Path(output.meryl),
         acc_in=lambda wildcards, input: register_input(input),
     shell:
-        "mkdir -p {params.folder}"
+        "mkdir -p {output.meryl}"
             " && "
-        "tar xzf {input.targz} -C {params.folder}"
+        "tar xzf {input.targz} --strip-components=1 -C {output.meryl}"
