@@ -87,6 +87,15 @@ def parse_command_line():
         help="Skip self test of implementation at startup. Default: False"
     )
 
+    parser.add_argument(
+        "--break-after",
+        "-ba",
+        type=int,
+        default=0,
+        dest="break_after",
+        help="Abort operations after this many sequences; 0 to process all. Default: 0"
+    )
+
     args = parser.parse_args()
 
     return args
@@ -292,6 +301,9 @@ def main():
                 if cmap is not None:
                     cmap_table.write(coordinate_map.getvalue())
                     coordinate_map = io.StringIO()
+
+            if args.break_after > 0 and args.break_after > record_num:
+                break
 
 
         if buffered > 0:
