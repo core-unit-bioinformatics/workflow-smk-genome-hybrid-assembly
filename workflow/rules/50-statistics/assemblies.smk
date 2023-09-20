@@ -67,7 +67,7 @@ rule get_verkko_trio_phased_output_stats:
         summary = expand(
             DIR_RES.joinpath(
                 "statistics", "assemblies",
-                "{sample}.ps-sseq.verkko-{vrk_out}.summary.tsv"
+                "{sample}.ps-trio.verkko-{vrk_out}.summary.tsv"
             ),
             sample=TRIO_SAMPLES,
             vrk_out=["asm-hap1", "asm-hap2", "asm-unassigned", "asm-rdna"]
