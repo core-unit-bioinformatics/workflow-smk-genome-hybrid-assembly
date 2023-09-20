@@ -95,3 +95,22 @@ rule run_verkko_tests:
             DIR_PROC.joinpath("testdata/verkko/local/assembly.ok"),
             DIR_PROC.joinpath("testdata/verkko/cluster/assembly.ok")
         ]
+
+
+rule extract_meryl_hapmer_db:
+    """Rule exist to support gzipped meryl
+    k-mer / hap-mer databases as input
+    """
+    input:
+        targz = lambda wildcards: MAP_SAMPLE_TO_INPUT_FILES[wildcards.sample][wildcards.hap_db]
+    output:
+        meryl = directory(DIR_PROC.joinpath(
+            "00-prepare", "verkko", "hapmer_dbs",
+            "{sample}.{hap_db}.meryl"
+        ))
+    params:
+        folder = lambda wildcards, output: pathlib.Path(output.meryl).parent
+    shell:
+        "mkdir -p {params.folder}"
+            " && "
+        "tar xzf {input.targz} -C {params.folder}"

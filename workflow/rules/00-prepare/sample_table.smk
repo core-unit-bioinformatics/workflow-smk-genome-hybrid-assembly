@@ -77,14 +77,34 @@ def collect_input_files(sample_sheet):
             )
             trio_samples.add(sample)
             hap1_db = row.hap1
-            assert hap1_db.endswith("meryl")
-            assert pathlib.Path(hap1_db).resolve(strict=True).is_dir()
-            sample_input[sample]["hap1"] = hap1_db
+            if hap1_db.endswith("meryl"):
+                assert pathlib.Path(hap1_db).resolve(strict=True).is_dir()
+                hap1_input_db = hap1_db
+            elif hap1_db.endswith("tar.gz"):
+                assert pathlib.Path(hap1_db).resolve(strict=True).is_file()
+                # this path: see module in
+                # 00-prepare::verkko.smk
+                hap1_input_db = str(DIR_PROC.joinpath(
+                    "00-prepare", "verkko", "hapmer_dbs",
+                    f"{sample}.hap1.meryl"))
+            else:
+                raise ValueError(f"Cannot process k-mer / hap-mer meryl DB input: {hap1_db}")
+            sample_input[sample]["hap1"] = hap1_input_db
 
             hap2_db = row.hap2
-            assert hap2_db.endswith("meryl")
-            assert pathlib.Path(hap2_db).resolve(strict=True).is_dir()
-            sample_input[sample]["hap2"] = hap2_db
+            if hap2_db.endswith("meryl"):
+                assert pathlib.Path(hap2_db).resolve(strict=True).is_dir()
+                hap2_input_db = hap2_db
+            elif hap2_db.endswith("tar.gz"):
+                assert pathlib.Path(hap2_db).resolve(strict=True).is_file()
+                # this path: see module in
+                # 00-prepare::verkko.smk
+                hap2_input_db = str(DIR_PROC.joinpath(
+                    "00-prepare", "verkko", "hapmer_dbs",
+                    f"{sample}.hap2.meryl"))
+            else:
+                raise ValueError(f"Cannot process k-mer / hap-mer meryl DB input: {hap2_db}")
+            sample_input[sample]["hap2"] = hap2_input_db
 
             assert sample_input[sample]["hap1"] != sample_input[sample]["hap2"]
 
