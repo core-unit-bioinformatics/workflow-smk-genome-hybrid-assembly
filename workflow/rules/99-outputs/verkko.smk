@@ -46,5 +46,5 @@ if RUN_VERKKO_HIC_SAMPLES:
         rules.postprocess_verkko_hic_samples.input.asm_units
     )
     VERKKO_OUTPUT.extend(
-        rules.get_verkko_sseq_phased_output_stats.input.summary
+        rules.get_verkko_hic_phased_output_stats.input.summary
     )
