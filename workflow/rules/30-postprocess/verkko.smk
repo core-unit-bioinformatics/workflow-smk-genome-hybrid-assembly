@@ -302,3 +302,19 @@ rule postprocess_verkko_trio_samples:
             asm_unit=get_verkko_asm_units("ps-trio"),
             sample=TRIO_SAMPLES
         )
+
+
+rule postprocess_verkko_hic_samples:
+    input:
+        exemplars = expand(
+            rules.copy_verkko_exemplar_sequences.output.ex_seq,
+            phasing_state=["ps-hic"],
+            asm_unit=["rdna", "ebv", "mito"],
+            sample=HIC_SAMPLES
+        ),
+        asm_units = expand(
+            rules.filter_verkko_dup_sequences.output.asm_unit,
+            phasing_state=["ps-hic"],
+            asm_unit=get_verkko_asm_units("ps-hic"),
+            sample=HIC_SAMPLES
+        )

@@ -10,10 +10,12 @@ MAP_SAMPLE_TO_INPUT_FILES = None
 
 TRIO_SAMPLES = None
 SSEQ_SAMPLES = None
+HIC_SAMPLES = None
 UNPHASED_SAMPLES = None
 
 CONSTRAINT_TRIO_SAMPLES = None
 CONSTRAINT_SSEQ_SAMPLES = None
+CONSTRAINT_HIC_SAMPLES = None
 CONSTRAINT_UNPHASED_SAMPLES = None
 
 
@@ -29,28 +31,32 @@ def process_sample_sheet():
 
     # step 1: each row is a sample,
     # just collect the input files
-    sample_input, trio_samples, sseq_samples, unphased_samples = collect_input_files(SAMPLE_SHEET)
+    sample_input, sample_sets = collect_input_files(SAMPLE_SHEET)
     all_samples = sorted(sample_input.keys())
     assert len(all_samples) == SAMPLE_SHEET.shape[0]
 
     global SAMPLES
     SAMPLES = all_samples
     global TRIO_SAMPLES
-    TRIO_SAMPLES = trio_samples
+    TRIO_SAMPLES = sample_sets["trio"]
     global SSEQ_SAMPLES
-    SSEQ_SAMPLES = sseq_samples
+    SSEQ_SAMPLES = sample_sets["sseq"]
+    global HIC_SAMPLES
+    HIC_SAMPLES = sample_sets["hic"]
     global UNPHASED_SAMPLES
-    UNPHASED_SAMPLES = unphased_samples
+    UNPHASED_SAMPLES = sample_sets["unphased"]
 
     global MAP_SAMPLE_TO_INPUT_FILES
     MAP_SAMPLE_TO_INPUT_FILES = sample_input
 
     global CONSTRAINT_TRIO_SAMPLES
-    CONSTRAINT_TRIO_SAMPLES = _build_constraint(trio_samples)
+    CONSTRAINT_TRIO_SAMPLES = _build_constraint(TRIO_SAMPLES)
     global CONSTRAINT_SSEQ_SAMPLES
-    CONSTRAINT_SSEQ_SAMPLES = _build_constraint(sseq_samples)
+    CONSTRAINT_SSEQ_SAMPLES = _build_constraint(SSEQ_SAMPLES)
+    global CONSTRAINT_HIC_SAMPLES
+    CONSTRAINT_HIC_SAMPLES = _build_constraint(HIC_SAMPLES)
     global CONSTRAINT_UNPHASED_SAMPLES
-    CONSTRAINT_UNPHASED_SAMPLES = _build_constraint(unphased_samples)
+    CONSTRAINT_UNPHASED_SAMPLES = _build_constraint(UNPHASED_SAMPLES)
 
     return
 
@@ -64,6 +70,7 @@ def collect_input_files(sample_sheet):
     sample_input = collections.defaultdict(dict)
     trio_samples = set()
     sseq_samples = set()
+    hic_samples = set()
     unphased_samples = set()
 
     for row in sample_sheet.itertuples():
@@ -131,6 +138,14 @@ def collect_input_files(sample_sheet):
             )
             sample_input[sample]["phasing_paths"] = phasing_paths_file
 
+        elif row.target == "hic":
+            assert hasattr(row, "hic1"), "Phasing with Hi-C requires field 'hic1' in sample table"
+            assert hasattr(row, "hic2"), "Phasing with Hi-C requires field 'hic2' in sample table"
+            hic1_read_files = collect_sequence_input(row.hic1)
+            hic2_read_files = collect_sequence_input(row.hic2)
+            sample_input[sample]["hic1"] = hic1_read_files
+            sample_input[sample]["hic2"] = hic2_read_files
+
         elif row.target == "unphased":
             unphased_samples.add(sample)
         else:
@@ -138,7 +153,14 @@ def collect_input_files(sample_sheet):
         sample_input[sample]["hifi"] = hifi_input
         sample_input[sample]["ont"] = ont_input
 
-    return sample_input, trio_samples, sseq_samples, unphased_samples
+    sample_sets = {
+        "trio": trio_samples,
+        "sseq": sseq_samples,
+        "hic": hic_samples,
+        "unphased": unphased_samples
+    }
+
+    return sample_input, sample_sets
 
 
 def _read_input_files_from_fofn(fofn_path):

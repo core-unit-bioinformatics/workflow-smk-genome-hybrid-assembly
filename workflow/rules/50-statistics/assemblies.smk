@@ -45,7 +45,7 @@ rule get_verkko_unphased_output_stats:
                 "statistics", "assemblies",
                 "{sample}.ps-none.verkko-{vrk_out}.summary.tsv"
             ),
-            sample=SSEQ_SAMPLES,
+            sample=UNPHASED_SAMPLES,
             vrk_out=["asm-wg", "asm-rdna"]
         )
 
@@ -70,5 +70,17 @@ rule get_verkko_trio_phased_output_stats:
                 "{sample}.ps-trio.verkko-{vrk_out}.summary.tsv"
             ),
             sample=TRIO_SAMPLES,
+            vrk_out=["asm-hap1", "asm-hap2", "asm-unassigned", "asm-rdna"]
+        )
+
+
+rule get_verkko_hic_phased_output_stats:
+    input:
+        summary = expand(
+            DIR_RES.joinpath(
+                "statistics", "assemblies",
+                "{sample}.ps-hic.verkko-{vrk_out}.summary.tsv"
+            ),
+            sample=HIC_SAMPLES,
             vrk_out=["asm-hap1", "asm-hap2", "asm-unassigned", "asm-rdna"]
         )
