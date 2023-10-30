@@ -145,6 +145,7 @@ def collect_input_files(sample_sheet):
             hic2_read_files = collect_sequence_input(row.hic2)
             sample_input[sample]["hic1"] = hic1_read_files
             sample_input[sample]["hic2"] = hic2_read_files
+            hic_samples.add(sample)
 
         elif row.target == "unphased":
             unphased_samples.add(sample)
