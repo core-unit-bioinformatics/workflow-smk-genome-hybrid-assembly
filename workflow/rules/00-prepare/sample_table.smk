@@ -141,8 +141,8 @@ def collect_input_files(sample_sheet):
         elif row.target == "hic":
             assert hasattr(row, "hic1"), "Phasing with Hi-C requires field 'hic1' in sample table"
             assert hasattr(row, "hic2"), "Phasing with Hi-C requires field 'hic2' in sample table"
-            hic1_read_files = collect_sequence_input(row.hic1)
-            hic2_read_files = collect_sequence_input(row.hic2)
+            hic1_read_files, hic2_file_hashes = collect_sequence_input(row.hic1)
+            hic2_read_files, hic2_file_hashes = collect_sequence_input(row.hic2)
             sample_input[sample]["hic1"] = hic1_read_files
             sample_input[sample]["hic2"] = hic2_read_files
             hic_samples.add(sample)
