@@ -52,6 +52,9 @@ KNOWN_OUTPUT_FILES = [
     ("rdna.exemplar.fasta", "rdna_repr", "Representative rDNA sequence."),
     ("rdna.fasta", "rdna_fasta", "All sequences identified as rDNA."),
     ("scfmap", "scf_map", "Scaffold mapping."),
+    ("colors.csv", "node_coloring", "Rukki node coloring (only in trio mode)."),
+    ("paths.tsv", "rukki_paths", "Rukki paths file (only in trio mode)."),
+
 ]
 
 KNOWN_OUTPUT_FILES = dict((t[0], t[1:]) for t in KNOWN_OUTPUT_FILES)
