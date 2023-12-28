@@ -9,8 +9,11 @@ def assemble_verkko_screen_string():
     screen_files_exist = config.get("verkko_screen_files_exist", True)
 
     screen_opt = ""
-    screen_spec = config.get("verkko_screen", "")
-    if screen_spec == "human":
+    screen_spec = config.get("verkko_screen", None)
+
+    if screen_spec is None:
+        screen_opt = ""
+    elif screen_spec == "human":
         screen_opt = " --screen human "
     elif isinstance(screen_spec, list):
         assert isinstance(screen_spec[0], dict)
