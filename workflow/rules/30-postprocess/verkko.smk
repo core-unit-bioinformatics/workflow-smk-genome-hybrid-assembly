@@ -262,13 +262,13 @@ rule postprocess_verkko_unphased_samples:
             rules.copy_verkko_exemplar_sequences.output.ex_seq,
             phasing_state=["ps-none"],
             asm_unit=["rdna", "ebv", "mito"],
-            sample=SAMPLES
+            sample=UNPHASED_SAMPLES
         ),
         asm_units = expand(
             rules.filter_verkko_dup_sequences.output.asm_unit,
             phasing_state=["ps-none"],
             asm_unit=get_verkko_asm_units("ps-none"),
-            sample=SAMPLES
+            sample=UNPHASED_SAMPLES
         )
 
 
