@@ -159,6 +159,15 @@ def parse_command_line(cache_tempfile):
     )
 
     parser.add_argument(
+        "--fail-on-empty-input",
+        "--strict",
+        action="store_true",
+        default=False,
+        dest="fail_empty",
+        help="Fail on empty input instead of creating empty output. Default: False"
+    )
+
+    parser.add_argument(
         "--output-statistics",
         "-o",
         type=lambda x: pl.Path(x).resolve(),
@@ -600,13 +609,21 @@ def main(cache_tempfile):
         stats = pd.DataFrame(
             columns=["seq_name", "seq_source", "seq_hash", "seq_length"]
         )
-        if args.output_statistics is not None:
+        if not (args.output_statistics is None and args.fail_empty):
             args.output_statistics.parent.mkdir(exist_ok=True, parents=True)
             stats.to_csv(args.output_statistics, sep="\t", header=True, index=False)
 
+        summary = pd.DataFrame(columns=["source", "statistic", "value"])
+
+        if not (args.output_summary is None and args.fail_empty):
+            args.output_summary.parent.mkdir(exist_ok=True, parents=True)
+            summary.to_csv(args.output_summary, sep="\t", header=True, index=False)
+
+        exit_code = 1 if args.fail_empty else 0
         sys.stderr.write(f"\nEmpty input file(s)\n")
 
     else:
+        exit_code = 0
 
         mindex = pd.MultiIndex.from_tuples(
             index_records, names=["seq_name", "seq_source", "seq_hash"]
@@ -652,11 +669,12 @@ def main(cache_tempfile):
             summary = prepare_summary(args, stats, proc_timings["total"].values)
         else:
             summary = prepare_summary(args, stats, None)
+
         if args.output_summary is not None:
             args.output_summary.parent.mkdir(exist_ok=True, parents=True)
             summary.to_csv(args.output_summary, sep="\t", header=True, index=False)
 
-    return 0
+    return exit_code
 
 
 if __name__ == "__main__":
@@ -666,8 +684,9 @@ if __name__ == "__main__":
     tempfile_fobj.close()
     tempfile_name = tempfile_fobj.name
     try:
-        main(tempfile_name)
+        exit_code = main(tempfile_name)
         os.unlink(tempfile_name)
     except Exception:
         os.unlink(tempfile_name)
         raise
+    sys.exit(exit_code)
