@@ -5,6 +5,9 @@ rule hifiasm_unphased_samples:
     Removed options for debugging
     purposes:
      --write-paf --write-ec
+
+    TODO
+    make parameter ul-cut user-configurable
     """
     input:
         hifi = lambda wildcards: MAP_SAMPLE_TO_INPUT_FILES[wildcards.sample]["hifi"],
@@ -21,8 +24,8 @@ rule hifiasm_unphased_samples:
         sample = CONSTRAINT_UNPHASED_SAMPLES
     threads: CPU_MAX
     resources:
-        mem_mb=lambda wildcards, attempt: (512 + 384 * attempt) * 1024,
-        time_hrs=lambda wildcards, attempt: 71 * attempt,
+        mem_mb=lambda wildcards, attempt: 1400 * 1024,
+        time_hrs=lambda wildcards, attempt: 168,
     params:
         acc_in=lambda wildcards, input: register_input(input.hifi, input.nano),
         prefix=lambda wildcards, output: pathlib.Path(output.done).with_suffix(".wd").joinpath(wildcards.sample),
@@ -31,7 +34,7 @@ rule hifiasm_unphased_samples:
         "mkdir -p {params.outdir}"
             " && "
         "hifiasm -o {params.prefix} -t {threads} "
-            "--ul {input.nano} --write-ec "
+            "--ul {input.nano} --ul-cut 100000 --dual-scaf "
             "{input.hifi} &> {log}"
             " && "
         "touch {output}"
