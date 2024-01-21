@@ -13,18 +13,18 @@ rule hifiasm_unphased_samples:
         hifi = lambda wildcards: MAP_SAMPLE_TO_INPUT_FILES[wildcards.sample]["hifi"],
         nano = lambda wildcards: MAP_SAMPLE_TO_INPUT_FILES[wildcards.sample]["ont"],
     output:
-        done = DIR_PROC.joinpath("assemblies/hifiasm/{sample}.ps-none.ok")
+        done = DIR_PROC.joinpath("10-assemble/hifiasm/{sample}.ps-none.ok")
     log:
-        DIR_LOG.joinpath("assemblies/hifiasm/{sample}.ps-none.log")
+        DIR_LOG.joinpath("10-assemble/hifiasm/{sample}.ps-none.log")
     benchmark:
-        DIR_RSRC.joinpath("assemblies/hifiasm/{sample}.ps-none.rsrc")
+        DIR_RSRC.joinpath("10-assemble/hifiasm/{sample}.ps-none.rsrc")
     conda:
         DIR_ENVS.joinpath("hifiasm.yaml")
     wildcard_constraints:
         sample = CONSTRAINT_UNPHASED_SAMPLES
     threads: CPU_MAX
     resources:
-        mem_mb=lambda wildcards, attempt: 1400 * 1024,
+        mem_mb=lambda wildcards, attempt: 3000 * 1024,
         time_hrs=lambda wildcards, attempt: 167,
     params:
         acc_in=lambda wildcards, input: register_input(input.hifi, input.nano),
@@ -44,6 +44,6 @@ rule hifiasm_unphased_samples:
 rule run_hifiasm_unphased_samples:
     input:
         assemblies = expand(
-            DIR_PROC.joinpath("assemblies/hifiasm/{sample}.ps-none.ok"),
+            DIR_PROC.joinpath("10-assemble/hifiasm/{sample}.ps-none.ok"),
             sample=UNPHASED_SAMPLES
         ),
