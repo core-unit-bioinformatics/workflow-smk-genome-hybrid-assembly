@@ -133,32 +133,55 @@ rule expand_sequence_coordinates:
         cmap = rules.homopolymer_compress_verkko_whole_genome.output.cmap,
         tbi = rules.homopolymer_compress_verkko_whole_genome.output.tbi
     output:
-        tsv = DIR_PROC.joinpath(
-            "40-supplement", "verkko", "map_hpc_plain",
-            "{sample}.{phasing_state}.graph-linear-hpc.tsv.gz"
+        tsv = DIR_RES.joinpath(
+            "assemblies", "verkko", "{sample}.{phasing_state}",
+            "aux",
+            "{sample}.{phasing_state}.graph-linear-hpc-map.tsv.gz"
         )
     conda:
         DIR_ENVS.joinpath("pyseq.yaml")
     resources:
         mem_mb = lambda wildcards, attempt: 4096 * attempt
     params:
-        script=find_script("expand_coord")
+        script=find_script("expand_coord"),
+        acc_res=lambda wildcards, output: register_result(output)
     shell:
         "{params.script} --norm-paf {input.paf} --paf-coord-space hpc "
             "--coord-map {input.cmap} --paf-coord-expand target "
             "--out-table {output.tsv}"
 
 
-rule run_verkko_supplement_cmap:
+rule run_verkko_unphased_supplement_cmap:
     input:
-        cmap = expand(
-            rules.swap_hpc_to_plain_cmap.output.cmap,
-            sample=SSEQ_SAMPLES,
-            phasing_state=["ps-sseq"]
-        ),
+        tsv = expand(
+            rules.expand_sequence_coordinates.output.tsv,
+            sample=UNPHASED_SAMPLES,
+            phasing_state=["ps-none"]
+        )
+
+
+rule run_verkko_sseq_supplement_cmap:
+    input:
         tsv = expand(
             rules.expand_sequence_coordinates.output.tsv,
             sample=SSEQ_SAMPLES,
             phasing_state=["ps-sseq"]
         )
 
+
+rule run_verkko_trio_supplement_cmap:
+    input:
+        tsv = expand(
+            rules.expand_sequence_coordinates.output.tsv,
+            sample=TRIO_SAMPLES,
+            phasing_state=["ps-trio"]
+        )
+
+
+rule run_verkko_hic_supplement_cmap:
+    input:
+        tsv = expand(
+            rules.expand_sequence_coordinates.output.tsv,
+            sample=HIC_SAMPLES,
+            phasing_state=["ps-hic"]
+        )

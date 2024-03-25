@@ -140,8 +140,15 @@ def get_verkko_output(file_collection, which_file, relpath=True):
 
 
 def get_verkko_asm_units(phasing_state):
-
-    scraps = ["disconnected", "rdna", "ebv", "mito"]
+    """Borderline: no need to screen for all three
+    (rdna, ebv, mito), so this will fail in those
+    cases. Not obvious how to avoid that.
+    TODO fix the above
+    """
+    if VERKKO_SCREEN:
+        scraps = ["disconnected", "rdna", "ebv", "mito"]
+    else:
+        scraps = ["disconnected"]
 
     if phasing_state in ["ps-sseq", "sseq", "ps-trio", "hic", "ps-hic"]:
         asm_units = ["hap1", "hap2", "unassigned"] + scraps

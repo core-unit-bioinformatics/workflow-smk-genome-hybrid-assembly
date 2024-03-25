@@ -22,4 +22,5 @@ include: "40-supplement/verkko_10_cmap.smk"
 include: "50-statistics/reads.smk"
 include: "50-statistics/assemblies.smk"
 
+include: "99-outputs/reads.smk"
 include: "99-outputs/verkko.smk"

@@ -256,6 +256,178 @@ rule copy_verkko_exemplar_sequences:
         "}} fi;"
 
 
+### The following post-processing rules are an explicit code duplication
+# because of the varying output that Verkko produces depending on
+# the phasing mode. Maybe there will be more consistency in future versions
+# of verkko
+
+rule finalize_verkko_unphased_samples:
+    """
+    Rule for UNPHASED / ps-none samples
+    """
+    input:
+        file_collection = rules.collect_verkko_output_files.output.file_collection
+    output:
+        hifi_cov = DIR_RES.joinpath(
+            "assemblies", "verkko", "{sample}.ps-none",
+            "aux",
+            "{sample}.ps-none.node-hifi-cov.tsv"
+        ),
+        ont_cov = DIR_RES.joinpath(
+            "assemblies", "verkko", "{sample}.ps-none",
+            "aux",
+            "{sample}.ps-none.node-ont-cov.tsv"
+        ),
+        gfa = DIR_RES.joinpath(
+            "assemblies", "verkko", "{sample}.ps-none",
+            "graph",
+            "{sample}.ps-none.homopolymer-compressed-graph.gfa.gz"
+        ),
+        gfa_noseq = DIR_RES.joinpath(
+            "assemblies", "verkko", "{sample}.ps-none",
+            "graph",
+            "{sample}.ps-none.homopolymer-compressed-graph.noseq.gfa"
+        ),
+        layout = DIR_RES.joinpath(
+            "assemblies", "verkko", "{sample}.ps-none",
+            "graph",
+            "{sample}.ps-none.homopolymer-compressed-graph.layout.gz"
+        )
+    params:
+        acc_res=lambda wildcards, output: register_result(output),
+        hifi_cov=lambda wildcards, input: get_verkko_output(input.file_collection, "hifi_cov"),
+        ont_cov=lambda wildcards, input: get_verkko_output(input.file_collection, "ont_cov"),
+        gfa=lambda wildcards, input: get_verkko_output(input.file_collection, "wg_gfa_hpc"),
+        gfa_noseq=lambda wildcards, input: get_verkko_output(input.file_collection, "wg_gfa_noseq"),
+        layout=lambda wildcards, input: get_verkko_output(input.file_collection, "wg_layout"),
+    shell:
+        "cp {params.hifi_cov} {output.hifi_cov} && "
+        "cp {params.ont_cov} {output.ont_cov} && "
+        "cat {params.gfa} | gzip > {output.gfa} && "
+        "cp {params.gfa_noseq} {output.gfa_noseq} && "
+        "cat {params.layout} | gzip > {output.layout}"
+
+
+rule finalize_verkko_sseq_samples:
+    """
+    Rule for STRANDSEQ / ps-sseq samples
+    """
+    input:
+        file_collection = rules.collect_verkko_output_files.output.file_collection,
+        paths = lambda wildcards: MAP_SAMPLE_TO_INPUT_FILES[wildcards.sample]["phasing_paths"],
+    output:
+        layout = DIR_RES.joinpath(
+            "assemblies", "verkko", "{sample}.ps-sseq",
+            "graph",
+            "{sample}.ps-sseq.homopolymer-compressed-graph.layout.gz"
+        ),
+        paths = DIR_RES.joinpath(
+            "assemblies", "verkko", "{sample}.ps-sseq",
+            "aux",
+            "{sample}.ps-sseq.graphasing-paths.tsv"
+        ),
+    params:
+        acc_res=lambda wildcards, output: register_result(output),
+        layout=lambda wildcards, input: get_verkko_output(input.file_collection, "wg_layout"),
+    shell:
+        "cat {params.layout} | gzip > {output.layout} && "
+        "cp {input.paths} {output.paths}"
+
+
+rule finalize_verkko_trio_samples:
+    """
+    Rule for TRIO / ps-trio samples
+    """
+    input:
+        file_collection = rules.collect_verkko_output_files.output.file_collection
+    output:
+        hifi_cov = DIR_RES.joinpath(
+            "assemblies", "verkko", "{sample}.ps-trio",
+            "aux",
+            "{sample}.ps-trio.node-hifi-cov.tsv"
+        ),
+        ont_cov = DIR_RES.joinpath(
+            "assemblies", "verkko", "{sample}.ps-trio",
+            "aux",
+            "{sample}.ps-trio.node-ont-cov.tsv"
+        ),
+        gfa = DIR_RES.joinpath(
+            "assemblies", "verkko", "{sample}.ps-trio",
+            "graph",
+            "{sample}.ps-trio.homopolymer-compressed-graph.gfa.gz"
+        ),
+        gfa_noseq = DIR_RES.joinpath(
+            "assemblies", "verkko", "{sample}.ps-trio",
+            "graph",
+            "{sample}.ps-trio.homopolymer-compressed-graph.noseq.gfa"
+        ),
+        layout = DIR_RES.joinpath(
+            "assemblies", "verkko", "{sample}.ps-trio",
+            "graph",
+            "{sample}.ps-trio.homopolymer-compressed-graph.layout.gz"
+        ),
+        coloring = DIR_RES.joinpath(
+            "assemblies", "verkko", "{sample}.ps-trio",
+            "aux",
+            "{sample}.ps-trio.node-coloring.tsv"
+        ),
+        paths = DIR_RES.joinpath(
+            "assemblies", "verkko", "{sample}.ps-trio",
+            "aux",
+            "{sample}.ps-trio.rukki-phasing-paths.tsv"
+        ),
+    params:
+        acc_res=lambda wildcards, output: register_result(output),
+        hifi_cov=lambda wildcards, input: get_verkko_output(input.file_collection, "hifi_cov"),
+        ont_cov=lambda wildcards, input: get_verkko_output(input.file_collection, "ont_cov"),
+        gfa=lambda wildcards, input: get_verkko_output(input.file_collection, "wg_gfa_hpc"),
+        gfa_noseq=lambda wildcards, input: get_verkko_output(input.file_collection, "wg_gfa_noseq"),
+        layout=lambda wildcards, input: get_verkko_output(input.file_collection, "wg_layout"),
+        coloring=lambda wildcards, input: get_verkko_output(input.file_collection, "node_coloring"),
+        paths=lambda wildcards, input: get_verkko_output(input.file_collection, "rukki_paths"),
+    shell:
+        "cp {params.hifi_cov} {output.hifi_cov} && "
+        "cp {params.ont_cov} {output.ont_cov} && "
+        "cat {params.gfa} | gzip > {output.gfa} && "
+        "cp {params.gfa_noseq} {output.gfa_noseq} && "
+        "cat {params.layout} | gzip > {output.layout} && "
+        "cp {params.coloring} {output.coloring} && "
+        "cp {params.paths} {output.paths}"
+
+
+rule finalize_verkko_hic_samples:
+    """
+    Rule for HiC / ps-hic samples
+    """
+    input:
+        file_collection = rules.collect_verkko_output_files.output.file_collection
+    output:
+        gfa_noseq = DIR_RES.joinpath(
+            "assemblies", "verkko", "{sample}.ps-hic",
+            "graph",
+            "{sample}.ps-hic.homopolymer-compressed-graph.noseq.gfa"
+        ),
+        layout = DIR_RES.joinpath(
+            "assemblies", "verkko", "{sample}.ps-hic",
+            "graph",
+            "{sample}.ps-hic.homopolymer-compressed-graph.layout.gz"
+        ),
+        paths = DIR_RES.joinpath(
+            "assemblies", "verkko", "{sample}.ps-hic",
+            "aux",
+            "{sample}.ps-hic.hic-phasing-paths.tsv"
+        ),
+    params:
+        acc_res=lambda wildcards, output: register_result(output),
+        gfa_noseq=lambda wildcards, input: get_verkko_output(input.file_collection, "wg_gfa_noseq"),
+        layout=lambda wildcards, input: get_verkko_output(input.file_collection, "wg_layout"),
+        paths=lambda wildcards, input: get_verkko_output(input.file_collection, "rukki_paths"),
+    shell:
+        "cp {params.gfa_noseq} {output.gfa_noseq} && "
+        "cat {params.layout} | gzip > {output.layout} && "
+        "cp {params.paths} {output.paths}"
+
+
 rule postprocess_verkko_unphased_samples:
     input:
         exemplars = expand(
@@ -268,6 +440,10 @@ rule postprocess_verkko_unphased_samples:
             rules.filter_verkko_dup_sequences.output.asm_unit,
             phasing_state=["ps-none"],
             asm_unit=get_verkko_asm_units("ps-none"),
+            sample=UNPHASED_SAMPLES
+        ),
+        finalize = expand(
+            rules.finalize_verkko_unphased_samples.output,
             sample=UNPHASED_SAMPLES
         )
 
@@ -285,6 +461,10 @@ rule postprocess_verkko_sseq_samples:
             phasing_state=["ps-sseq"],
             asm_unit=get_verkko_asm_units("ps-sseq"),
             sample=SSEQ_SAMPLES
+        ),
+        finalize = expand(
+            rules.finalize_verkko_sseq_samples.output,
+            sample=SSEQ_SAMPLES
         )
 
 
@@ -301,6 +481,10 @@ rule postprocess_verkko_trio_samples:
             phasing_state=["ps-trio"],
             asm_unit=get_verkko_asm_units("ps-trio"),
             sample=TRIO_SAMPLES
+        ),
+        finalize = expand(
+            rules.finalize_verkko_trio_samples.output,
+            sample=TRIO_SAMPLES
         )
 
 
@@ -316,5 +500,9 @@ rule postprocess_verkko_hic_samples:
             rules.filter_verkko_dup_sequences.output.asm_unit,
             phasing_state=["ps-hic"],
             asm_unit=get_verkko_asm_units("ps-hic"),
+            sample=HIC_SAMPLES
+        ),
+        finalize = expand(
+            rules.finalize_verkko_hic_samples.output,
             sample=HIC_SAMPLES
         )
