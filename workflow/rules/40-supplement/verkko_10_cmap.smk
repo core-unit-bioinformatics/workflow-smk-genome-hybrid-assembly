@@ -8,7 +8,7 @@ rule homopolymer_compress_verkko_whole_genome:
         ),
         faidx = lambda wildcards: expand(
             rules.filter_verkko_dup_sequences.output.fai,
-            asm_unit=get_verkko_asm_units(wildcard.phasing_state),
+            asm_unit=get_verkko_asm_units(wildcards.phasing_state),
             allow_missing=True
         )
     output:
