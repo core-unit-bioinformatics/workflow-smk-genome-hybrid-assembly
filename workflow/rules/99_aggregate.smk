@@ -8,4 +8,6 @@ in the main Snakefile
 
 WORKFLOW_OUTPUT = []
 
+WORKFLOW_OUTPUT.extend(READ_STATS)
+
 WORKFLOW_OUTPUT.extend(VERKKO_OUTPUT)
