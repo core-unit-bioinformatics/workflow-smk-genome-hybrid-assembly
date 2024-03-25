@@ -269,30 +269,32 @@ rule finalize_verkko_unphased_samples:
         file_collection = rules.collect_verkko_output_files.output.file_collection
     output:
         hifi_cov = DIR_RES.joinpath(
-            "assemblies", "verkko", "{sample}.ps-none",
+            "assemblies", "verkko", "{sample}.{phasing_state}",
             "aux",
-            "{sample}.ps-none.node-hifi-cov.tsv"
+            "{sample}.{phasing_state}.node-hifi-cov.tsv"
         ),
         ont_cov = DIR_RES.joinpath(
-            "assemblies", "verkko", "{sample}.ps-none",
+            "assemblies", "verkko", "{sample}.{phasing_state}",
             "aux",
-            "{sample}.ps-none.node-ont-cov.tsv"
+            "{sample}.{phasing_state}.node-ont-cov.tsv"
         ),
         gfa = DIR_RES.joinpath(
-            "assemblies", "verkko", "{sample}.ps-none",
+            "assemblies", "verkko", "{sample}.{phasing_state}",
             "graph",
-            "{sample}.ps-none.homopolymer-compressed-graph.gfa.gz"
+            "{sample}.{phasing_state}.homopolymer-compressed-graph.gfa.gz"
         ),
         gfa_noseq = DIR_RES.joinpath(
-            "assemblies", "verkko", "{sample}.ps-none",
+            "assemblies", "verkko", "{sample}.{phasing_state}",
             "graph",
-            "{sample}.ps-none.homopolymer-compressed-graph.noseq.gfa"
+            "{sample}.{phasing_state}.homopolymer-compressed-graph.noseq.gfa"
         ),
         layout = DIR_RES.joinpath(
-            "assemblies", "verkko", "{sample}.ps-none",
+            "assemblies", "verkko", "{sample}.{phasing_state}",
             "graph",
-            "{sample}.ps-none.homopolymer-compressed-graph.layout.gz"
+            "{sample}.{phasing_state}.homopolymer-compressed-graph.layout.gz"
         )
+    wildcard_constraints:
+        phasing_state = "ps-none"
     params:
         acc_res=lambda wildcards, output: register_result(output),
         hifi_cov=lambda wildcards, input: get_verkko_output(input.file_collection, "hifi_cov"),
@@ -317,15 +319,17 @@ rule finalize_verkko_sseq_samples:
         paths = lambda wildcards: MAP_SAMPLE_TO_INPUT_FILES[wildcards.sample]["phasing_paths"],
     output:
         layout = DIR_RES.joinpath(
-            "assemblies", "verkko", "{sample}.ps-sseq",
+            "assemblies", "verkko", "{sample}.{phasing_state}",
             "graph",
-            "{sample}.ps-sseq.homopolymer-compressed-graph.layout.gz"
+            "{sample}.{phasing_state}.homopolymer-compressed-graph.layout.gz"
         ),
         paths = DIR_RES.joinpath(
-            "assemblies", "verkko", "{sample}.ps-sseq",
+            "assemblies", "verkko", "{sample}.{phasing_state}",
             "aux",
-            "{sample}.ps-sseq.graphasing-paths.tsv"
+            "{sample}.{phasing_state}.graphasing-paths.tsv"
         ),
+    wildcard_constraints:
+        phasing_state = "ps-sseq"
     params:
         acc_res=lambda wildcards, output: register_result(output),
         layout=lambda wildcards, input: get_verkko_output(input.file_collection, "wg_layout"),
@@ -342,40 +346,42 @@ rule finalize_verkko_trio_samples:
         file_collection = rules.collect_verkko_output_files.output.file_collection
     output:
         hifi_cov = DIR_RES.joinpath(
-            "assemblies", "verkko", "{sample}.ps-trio",
+            "assemblies", "verkko", "{sample}.{phasing_state}",
             "aux",
-            "{sample}.ps-trio.node-hifi-cov.tsv"
+            "{sample}.{phasing_state}.node-hifi-cov.tsv"
         ),
         ont_cov = DIR_RES.joinpath(
-            "assemblies", "verkko", "{sample}.ps-trio",
+            "assemblies", "verkko", "{sample}.{phasing_state}",
             "aux",
-            "{sample}.ps-trio.node-ont-cov.tsv"
+            "{sample}.{phasing_state}.node-ont-cov.tsv"
         ),
         gfa = DIR_RES.joinpath(
-            "assemblies", "verkko", "{sample}.ps-trio",
+            "assemblies", "verkko", "{sample}.{phasing_state}",
             "graph",
-            "{sample}.ps-trio.homopolymer-compressed-graph.gfa.gz"
+            "{sample}.{phasing_state}.homopolymer-compressed-graph.gfa.gz"
         ),
         gfa_noseq = DIR_RES.joinpath(
-            "assemblies", "verkko", "{sample}.ps-trio",
+            "assemblies", "verkko", "{sample}.{phasing_state}",
             "graph",
-            "{sample}.ps-trio.homopolymer-compressed-graph.noseq.gfa"
+            "{sample}.{phasing_state}.homopolymer-compressed-graph.noseq.gfa"
         ),
         layout = DIR_RES.joinpath(
-            "assemblies", "verkko", "{sample}.ps-trio",
+            "assemblies", "verkko", "{sample}.{phasing_state}",
             "graph",
-            "{sample}.ps-trio.homopolymer-compressed-graph.layout.gz"
+            "{sample}.{phasing_state}.homopolymer-compressed-graph.layout.gz"
         ),
         coloring = DIR_RES.joinpath(
-            "assemblies", "verkko", "{sample}.ps-trio",
+            "assemblies", "verkko", "{sample}.{phasing_state}",
             "aux",
-            "{sample}.ps-trio.node-coloring.tsv"
+            "{sample}.{phasing_state}.node-coloring.tsv"
         ),
         paths = DIR_RES.joinpath(
-            "assemblies", "verkko", "{sample}.ps-trio",
+            "assemblies", "verkko", "{sample}.{phasing_state}",
             "aux",
-            "{sample}.ps-trio.rukki-phasing-paths.tsv"
+            "{sample}.{phasing_state}.rukki-phasing-paths.tsv"
         ),
+    wildcard_constraints:
+        phasing_state = "ps-trio"
     params:
         acc_res=lambda wildcards, output: register_result(output),
         hifi_cov=lambda wildcards, input: get_verkko_output(input.file_collection, "hifi_cov"),
@@ -403,20 +409,22 @@ rule finalize_verkko_hic_samples:
         file_collection = rules.collect_verkko_output_files.output.file_collection
     output:
         gfa_noseq = DIR_RES.joinpath(
-            "assemblies", "verkko", "{sample}.ps-hic",
+            "assemblies", "verkko", "{sample}.{phasing_state}",
             "graph",
-            "{sample}.ps-hic.homopolymer-compressed-graph.noseq.gfa"
+            "{sample}.{phasing_state}.homopolymer-compressed-graph.noseq.gfa"
         ),
         layout = DIR_RES.joinpath(
-            "assemblies", "verkko", "{sample}.ps-hic",
+            "assemblies", "verkko", "{sample}.{phasing_state}",
             "graph",
-            "{sample}.ps-hic.homopolymer-compressed-graph.layout.gz"
+            "{sample}.{phasing_state}.homopolymer-compressed-graph.layout.gz"
         ),
         paths = DIR_RES.joinpath(
-            "assemblies", "verkko", "{sample}.ps-hic",
+            "assemblies", "verkko", "{sample}.{phasing_state}",
             "aux",
-            "{sample}.ps-hic.hic-phasing-paths.tsv"
+            "{sample}.{phasing_state}.hic-phasing-paths.tsv"
         ),
+    wildcard_constraints:
+        phasing_state = "ps-hic"
     params:
         acc_res=lambda wildcards, output: register_result(output),
         gfa_noseq=lambda wildcards, input: get_verkko_output(input.file_collection, "wg_gfa_noseq"),
@@ -444,7 +452,8 @@ rule postprocess_verkko_unphased_samples:
         ),
         finalize = expand(
             rules.finalize_verkko_unphased_samples.output,
-            sample=UNPHASED_SAMPLES
+            sample=UNPHASED_SAMPLES,
+            phasing_state=["ps-none"]
         )
 
 
@@ -464,7 +473,8 @@ rule postprocess_verkko_sseq_samples:
         ),
         finalize = expand(
             rules.finalize_verkko_sseq_samples.output,
-            sample=SSEQ_SAMPLES
+            sample=SSEQ_SAMPLES,
+            phasing_state=["ps-sseq"]
         )
 
 
@@ -484,7 +494,8 @@ rule postprocess_verkko_trio_samples:
         ),
         finalize = expand(
             rules.finalize_verkko_trio_samples.output,
-            sample=TRIO_SAMPLES
+            sample=TRIO_SAMPLES,
+            phasing_state=["ps-trio"]
         )
 
 
@@ -504,5 +515,6 @@ rule postprocess_verkko_hic_samples:
         ),
         finalize = expand(
             rules.finalize_verkko_hic_samples.output,
-            sample=HIC_SAMPLES
+            sample=HIC_SAMPLES,
+            phasing_state=["ps-hic"]
         )
