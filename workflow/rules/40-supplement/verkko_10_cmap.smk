@@ -3,12 +3,12 @@ rule homopolymer_compress_verkko_whole_genome:
     input:
         fasta = lambda wildcards: expand(
             rules.filter_verkko_dup_sequences.output.asm_unit,
-            asm_unit=get_verkko_output(wildcards.phasing_state),
+            asm_unit=get_verkko_asm_units(wildcards.phasing_state),
             allow_missing=True
         ),
         faidx = lambda wildcards: expand(
             rules.filter_verkko_dup_sequences.output.fai,
-            asm_unit=get_verkko_output(wildcard.phasing_state),
+            asm_unit=get_verkko_asm_units(wildcard.phasing_state),
             allow_missing=True
         )
     output:
@@ -160,6 +160,23 @@ rule run_verkko_unphased_supplement_cmap:
         )
 
 
+rule run_verkko_sseq_supplement_cmap:
+    """NB: this can only work if the unphased
+    assembly run folder is still present because
+    the above rule
+    minimap_align_verkko_graphseq_to_fastaseq
+    is desigend (see pyutils module) to select
+    the assembly graph of the unphased run in
+    that case.
+    """
+    input:
+        tsv = expand(
+            rules.expand_sequence_coordinates.output.tsv,
+            sample=SSEQ_SAMPLES,
+            phasing_state=["ps-sseq"]
+        )
+
+
 rule run_verkko_trio_supplement_cmap:
     input:
         tsv = expand(
@@ -176,14 +193,6 @@ if False:
     # be produced. Note that for Strand-seq, the
     # respective coordinate mapping is available
     # via the unphased assembly run.
-    rule run_verkko_sseq_supplement_cmap:
-        input:
-            tsv = expand(
-                rules.expand_sequence_coordinates.output.tsv,
-                sample=SSEQ_SAMPLES,
-                phasing_state=["ps-sseq"]
-            )
-
     rule run_verkko_hic_supplement_cmap:
         input:
             tsv = expand(

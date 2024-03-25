@@ -54,11 +54,10 @@ if RUN_VERKKO_SSEQ_SAMPLES:
         VERKKO_OUTPUT.extend(
             rules.postprocess_verkko_sseq_samples.input.exemplars
         )
-    # Cannot be produced - see comment in 40-supplement::verkko_10_cmap.smk
-    # if _ADD_CMAP:
-    #     VERKKO_OUTPUT.extend(
-    #         rules.run_verkko_sseq_supplement_cmap.input.tsv
-    #     )
+    if _ADD_CMAP:
+        VERKKO_OUTPUT.extend(
+            rules.run_verkko_sseq_supplement_cmap.input.tsv
+        )
 
 
 if RUN_VERKKO_TRIO_SAMPLES:
