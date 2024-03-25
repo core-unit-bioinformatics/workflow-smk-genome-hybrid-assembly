@@ -1,14 +1,14 @@
 
 rule homopolymer_compress_verkko_whole_genome:
     input:
-        fasta = expand(
+        fasta = lambda wildcards: expand(
             rules.filter_verkko_dup_sequences.output.asm_unit,
-            asm_unit=["hap1", "hap2", "unassigned", "disconnected", "ebv", "mito", "rdna"],
+            asm_unit=get_verkko_output(wildcards.phasing_state),
             allow_missing=True
         ),
-        faidx = expand(
+        faidx = lambda wildcards: expand(
             rules.filter_verkko_dup_sequences.output.fai,
-            asm_unit=["hap1", "hap2", "unassigned", "disconnected", "ebv", "mito", "rdna"],
+            asm_unit=get_verkko_output(wildcard.phasing_state),
             allow_missing=True
         )
     output:
@@ -160,15 +160,6 @@ rule run_verkko_unphased_supplement_cmap:
         )
 
 
-rule run_verkko_sseq_supplement_cmap:
-    input:
-        tsv = expand(
-            rules.expand_sequence_coordinates.output.tsv,
-            sample=SSEQ_SAMPLES,
-            phasing_state=["ps-sseq"]
-        )
-
-
 rule run_verkko_trio_supplement_cmap:
     input:
         tsv = expand(
@@ -178,10 +169,25 @@ rule run_verkko_trio_supplement_cmap:
         )
 
 
-rule run_verkko_hic_supplement_cmap:
-    input:
-        tsv = expand(
-            rules.expand_sequence_coordinates.output.tsv,
-            sample=HIC_SAMPLES,
-            phasing_state=["ps-hic"]
-        )
+if False:
+    # NB: Verkko does not output the complete
+    # assembly graph including sequences in these
+    # two cases, hence, no coordinate mapping can
+    # be produced. Note that for Strand-seq, the
+    # respective coordinate mapping is available
+    # via the unphased assembly run.
+    rule run_verkko_sseq_supplement_cmap:
+        input:
+            tsv = expand(
+                rules.expand_sequence_coordinates.output.tsv,
+                sample=SSEQ_SAMPLES,
+                phasing_state=["ps-sseq"]
+            )
+
+    rule run_verkko_hic_supplement_cmap:
+        input:
+            tsv = expand(
+                rules.expand_sequence_coordinates.output.tsv,
+                sample=HIC_SAMPLES,
+                phasing_state=["ps-hic"]
+            )
