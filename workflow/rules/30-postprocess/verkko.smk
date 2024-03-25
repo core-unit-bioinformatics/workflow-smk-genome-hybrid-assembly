@@ -83,7 +83,7 @@ rule collect_verkko_output_files:
     output:
         file_collection = DIR_PROC.joinpath("10-assemble/verkko/{sample}.{phasing_state}.output.json")
     conda:
-        DIR_ENVS.joinpath("pygraph.yaml")
+        DIR_ENVS.joinpath("pyseq.yaml")
     params:
         script = find_script("collect_verkko_output"),
         verkko_wd = lambda wildcards, input: pathlib.Path(input.check_file).with_suffix(".wd"),
