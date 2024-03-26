@@ -153,6 +153,9 @@ def get_verkko_asm_units(phasing_state):
     if phasing_state in ["ps-sseq", "sseq", "ps-trio", "hic", "ps-hic"]:
         asm_units = ["hap1", "hap2", "unassigned"] + scraps
     elif phasing_state in ["ps-none", "none"]:
+        # Important: the whole-genome assembly FASTA represents the whole
+        # genome in the Verkko space, but not in the biological space,
+        # i.e. scrap sequences (rDNA, mito etc.) are not included in that file.
         asm_units = ["wg"] + scraps
     else:
         raise ValueError(f"Unknown phasing state: {phasing_state}")

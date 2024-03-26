@@ -1,5 +1,11 @@
 
 rule homopolymer_compress_verkko_whole_genome:
+    """NB: cannot use gzip/gunzip/zcat here because
+    there is no built-in option to skip over/ignore
+    empty files, which may happen for some files such
+    as the mito sequences identified by Verkko (or rather
+    not identified)
+    """
     input:
         fasta = lambda wildcards: expand(
             rules.filter_verkko_dup_sequences.output.asm_unit,
@@ -51,7 +57,7 @@ rule homopolymer_compress_verkko_whole_genome:
         script = find_script("seq_hpc"),
         plain_tsv = lambda wildcards, output: pathlib.Path(output.cmap).with_suffix("")
     shell:
-        "zcat {input.fasta} | {params.script} --cmap-table {params.plain_tsv} --report "
+        "pigz -c -d {input.fasta} | {params.script} --cmap-table {params.plain_tsv} --report "
         "| bgzip -c > {output.fasta}"
             " && "
         "samtools faidx {output.fasta}"
