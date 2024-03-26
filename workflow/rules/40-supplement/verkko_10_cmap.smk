@@ -1,10 +1,16 @@
 
 rule homopolymer_compress_verkko_whole_genome:
-    """NB: cannot use gzip/gunzip/zcat here because
-    there is no built-in option to skip over/ignore
-    empty files, which may happen for some files such
-    as the mito sequences identified by Verkko (or rather
-    not identified)
+    """NB: cannot use plain gzip/gunzip/zcat/pigz
+    here because there is no built-in option to
+    skip over/ignore empty files, which may happen
+    for some files such as the mito sequences
+    identified by Verkko (if executed w/ --screen).
+    The usual "trick" of forcing a 0 return ('|| true')
+    is dangerous because otherwise corrupted files
+    are not detected here.
+    TODO: seems like cleanest option is to run seq_hpc
+    script once per input and to concatenate the coordinate
+    maps afterwards. Needs a rewrite ...
     """
     input:
         fasta = lambda wildcards: expand(
@@ -57,7 +63,7 @@ rule homopolymer_compress_verkko_whole_genome:
         script = find_script("seq_hpc"),
         plain_tsv = lambda wildcards, output: pathlib.Path(output.cmap).with_suffix("")
     shell:
-        "pigz -c -d {input.fasta} | {params.script} --cmap-table {params.plain_tsv} --report "
+        "(pigz -c -d {input.fasta} || true) | {params.script} --cmap-table {params.plain_tsv} --report "
         "| bgzip -c > {output.fasta}"
             " && "
         "samtools faidx {output.fasta}"
