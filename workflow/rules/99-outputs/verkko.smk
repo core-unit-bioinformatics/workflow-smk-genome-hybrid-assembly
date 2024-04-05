@@ -30,6 +30,9 @@ if RUN_VERKKO_UNPHASED_SAMPLES and len(UNPHASED_SAMPLES) > 0:
     VERKKO_OUTPUT.extend(
         rules.postprocess_verkko_unphased_samples.input.finalize
     )
+    VERKKO_OUTPUT.extend(
+        rules.postprocess_verkko_unphased_samples.input.runcfg
+    )
     if VERKKO_SCREEN:
         VERKKO_OUTPUT.extend(
             rules.postprocess_verkko_unphased_samples.input.exemplars
@@ -49,6 +52,9 @@ if RUN_VERKKO_SSEQ_SAMPLES and len(SSEQ_SAMPLES) > 0:
     )
     VERKKO_OUTPUT.extend(
         rules.postprocess_verkko_sseq_samples.input.finalize
+    )
+    VERKKO_OUTPUT.extend(
+        rules.postprocess_verkko_sseq_samples.input.runcfg
     )
     if VERKKO_SCREEN:
         VERKKO_OUTPUT.extend(
@@ -70,6 +76,9 @@ if RUN_VERKKO_TRIO_SAMPLES and len(TRIO_SAMPLES) > 0:
     VERKKO_OUTPUT.extend(
         rules.postprocess_verkko_trio_samples.input.finalize
     )
+    VERKKO_OUTPUT.extend(
+        rules.postprocess_verkko_trio_samples.input.runcfg
+    )
     if VERKKO_SCREEN:
         VERKKO_OUTPUT.extend(
             rules.postprocess_verkko_trio_samples.input.exemplars
@@ -89,6 +98,9 @@ if RUN_VERKKO_HIC_SAMPLES and len(HIC_SAMPLES) > 0:
     )
     VERKKO_OUTPUT.extend(
         rules.postprocess_verkko_hic_samples.input.finalize
+    )
+    VERKKO_OUTPUT.extend(
+        rules.postprocess_verkko_hic_samples.input.runcfg
     )
     if VERKKO_SCREEN:
         VERKKO_OUTPUT.extend(
