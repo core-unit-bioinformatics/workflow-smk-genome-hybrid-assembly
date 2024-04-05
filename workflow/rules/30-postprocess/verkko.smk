@@ -436,6 +436,23 @@ rule finalize_verkko_hic_samples:
         "cp {params.paths} {output.paths}"
 
 
+localrules: save_verkko_run_config
+rule save_verkko_run_config:
+    input:
+        file_collection = rules.collect_verkko_output_files.output.file_collection
+    output:
+        run_yaml = DIR_RES.joinpath(
+            "assemblies", "verkko", "{sample}.{phasing_state}",
+            "aux",
+            "{sample}.{phasing_state}.verkko-run-config.yml"
+        )
+    params:
+        source_file=lambda wildcards, input: pathlib.Path(input.file_collection).parent.joinpath("verkko.yml"),
+        acc_res=lambda wildcards, output: register_result(output)
+    shell:
+        "cp {params.source_file} {output.run_yaml}"
+
+
 rule postprocess_verkko_unphased_samples:
     input:
         exemplars = expand(
@@ -452,6 +469,11 @@ rule postprocess_verkko_unphased_samples:
         ),
         finalize = expand(
             rules.finalize_verkko_unphased_samples.output,
+            sample=UNPHASED_SAMPLES,
+            phasing_state=["ps-none"]
+        ),
+        runcfg = expand(
+            rules.save_verkko_run_config.output.run_yaml,
             sample=UNPHASED_SAMPLES,
             phasing_state=["ps-none"]
         )
@@ -475,6 +497,11 @@ rule postprocess_verkko_sseq_samples:
             rules.finalize_verkko_sseq_samples.output,
             sample=SSEQ_SAMPLES,
             phasing_state=["ps-sseq"]
+        ),
+        runcfg = expand(
+            rules.save_verkko_run_config.output.run_yaml,
+            sample=SSEQ_SAMPLES,
+            phasing_state=["ps-sseq"]
         )
 
 
@@ -496,6 +523,11 @@ rule postprocess_verkko_trio_samples:
             rules.finalize_verkko_trio_samples.output,
             sample=TRIO_SAMPLES,
             phasing_state=["ps-trio"]
+        ),
+        runcfg = expand(
+            rules.save_verkko_run_config.output.run_yaml,
+            sample=TRIO_SAMPLES,
+            phasing_state=["ps-trio"]
         )
 
 
@@ -515,6 +547,11 @@ rule postprocess_verkko_hic_samples:
         ),
         finalize = expand(
             rules.finalize_verkko_hic_samples.output,
+            sample=HIC_SAMPLES,
+            phasing_state=["ps-hic"]
+        ),
+        runcfg = expand(
+            rules.save_verkko_run_config.output.run_yaml,
             sample=HIC_SAMPLES,
             phasing_state=["ps-hic"]
         )
