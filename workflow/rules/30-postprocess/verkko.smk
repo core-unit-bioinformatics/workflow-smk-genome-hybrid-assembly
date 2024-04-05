@@ -447,7 +447,9 @@ rule save_verkko_run_config:
             "{sample}.{phasing_state}.verkko-run-config.yml"
         )
     params:
-        source_file=lambda wildcards, input: pathlib.Path(input.file_collection).parent.joinpath("verkko.yml"),
+        source_file=lambda wildcards, input: pathlib.Path(
+            str(input.file_collection).replace("output.json", "wd")
+        ).joinpath("verkko.yml"),
         acc_res=lambda wildcards, output: register_result(output)
     shell:
         "cp {params.source_file} {output.run_yaml}"
