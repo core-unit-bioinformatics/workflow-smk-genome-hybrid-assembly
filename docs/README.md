@@ -1,5 +1,7 @@
 # Documentation for Snakemake workflow "genome hybrid assembly"
 
+**Disclaimer** the workflow is in prototype state and configuration may change at any time
+
 This workflow creates state-of-the-art genome hybrid assemblies
 for diploid vertebrate species. This version of the workflow was
 developed for the following scenario:
@@ -22,15 +24,22 @@ developed for the following scenario:
   - main: basic (length) statistics about assembly and long reads
   - optional: a coordinate map between the homopolymer-compressed assembly graph and the linearized plain FASTA files
 
-If you are familiar with the templated Snakemake workflow interface
-of the CUBI, please proceed directly to the
-[specific instructions for configuring this workflow](workflow/README.md).
+The sample sheet must be a TAB-separated text file (`.tsv` file extension) with at least the columns
+`sample`, `hifi` and `ont`, where both `hifi` and `ont` columns can hold an arbitrary number of
+input file paths (comma-seperated, i.e., `file_path1,file_path2,file_path3`) representing the respective
+read dataset for that sample. Common file extensions are recognised (e.g., `fastq.gz`, `.fq.gz` and so on).
+The Verkko assembler can optionally be configured for using three different phasing signals;
+add the column `target` to the sample sheet plus the following fields:
+1. trio-based: set value `trio` in column `target` and add columns `hap1` and `hap2` pointing to meryl k-mer databases
+of the sample parents (conventionally, `hap1` should be the father and `hap2` the mother)
+2. Hi-C: set value `hic` in column `target` and add fields `hic1` and `hic2` for the Hi-C reads of mate 1 and 2, respectively
+3. Strand-seq: set value `sseq` in column `target` and add field `phasing_paths` pointing to a `.gaf` format file produced
+by the [Grapahasing pipeline](https://github.com/marschall-lab/strand-seq-graph-phasing)
 
-Otherwise, please also read the short user documentation in the
-next section to learn how to setup and run the workflow and what
-`file accounting` is. The process of `file accounting` is used
-to generate a `manifest file` for the workflow run that tracks
-all input, output and reference files, if applicable.
+Since Verkko itself is implemented as a Snakemake workflow, you can execute a dry run to check if all
+input requirements are met by setting the option `verkko_dry_run` to `true`, see this example configuration:
+
+[Example parameterization](../config/parameter.yaml)
 
 ## User documentation for workflow template
 
